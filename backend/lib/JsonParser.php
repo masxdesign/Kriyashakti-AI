@@ -33,8 +33,11 @@ class JsonParser
         // If still failing, sanitize unescaped control characters inside string values
         if (json_last_error() !== JSON_ERROR_NONE) {
             $sanitized = preg_replace_callback(
-                '/"(?:[^"\\\\]|\\\\.)*"/s',
-                fn($m) => str_replace(["\n", "\r", "\t"], ['\n', '\r', '\t'], $m[0]),
+                '/"((?:[^"\\\\]|\\\\[\s\S])*)"/s',
+                function ($m) {
+                    $inner = str_replace(["\n", "\r", "\t"], ['\n', '\r', '\t'], $m[1]);
+                    return '"' . $inner . '"';
+                },
                 $stripped
             );
             $decoded = json_decode($sanitized, true);
