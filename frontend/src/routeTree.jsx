@@ -1,6 +1,7 @@
-import { createRootRoute, createRoute, Outlet } from '@tanstack/react-router'
+import { createRootRoute, createRoute, Outlet, redirect } from '@tanstack/react-router'
 import InputPage from './pages/InputPage.jsx'
 import ResultPage from './pages/ResultPage.jsx'
+import { getWishResult } from './store/wishResult.js'
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -15,6 +16,9 @@ export const indexRoute = createRoute({
 export const resultRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/result',
+  beforeLoad: () => {
+    if (!getWishResult()) throw redirect({ to: '/' })
+  },
   component: ResultPage,
 })
 

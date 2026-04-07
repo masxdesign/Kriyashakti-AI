@@ -1,5 +1,4 @@
 import { useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
 import { getWishResult, clearWishResult } from '../store/wishResult.js'
 import OriginalWishCard from '../components/OriginalWishCard.jsx'
 import CoreIntentionsChips from '../components/CoreIntentionsChips.jsx'
@@ -7,15 +6,7 @@ import ClarifiedWishSection from '../components/ClarifiedWishSection.jsx'
 
 export default function ResultPage() {
   const navigate = useNavigate()
-  const [result] = useState(() => getWishResult())
-
-  useEffect(() => {
-    if (!result) {
-      navigate({ to: '/' })
-    }
-  }, [result, navigate])
-
-  if (!result) return null
+  const result = getWishResult()
 
   const coreWishes = result.data.map(item => item.wish)
 
