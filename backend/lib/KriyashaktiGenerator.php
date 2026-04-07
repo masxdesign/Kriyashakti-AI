@@ -109,7 +109,7 @@ IMPORTANT: This rewritten goal is INTERNAL ONLY. NEVER output the rewritten vers
 
 Output ONLY raw JSON. No markdown. No explanation. No extra keys. No text outside JSON.
 
-{"options": ["<script>", "<script>", "<script>", "<script>", "<script>"]}
+{"options": ["So happy and grateful that I have money and I am on holiday This has materialized properly and rapidly!", "So blessed that I have money and I am on holiday This has materialized properly and rapidly!", "I feel fantastic that I have money and I am on holiday This has materialized properly and rapidly!", "So happy and grateful that I have money and I am on holiday May it be for my Highest Good and Greatest Joy!", "So blessed that I have money and I am on holiday This has manifested legally, ethically, and properly!"]}
 PROMPT;
 
         $raw = $this->client->complete($system, $wish);
@@ -119,6 +119,12 @@ PROMPT;
             throw new RuntimeException('Something went wrong. Please try again.');
         }
 
-        return $parsed['options'];
+        // Normalize: unwrap any {"script": "..."} objects the model may return
+        return array_map(function ($item) {
+            if (is_array($item)) {
+                return reset($item); // take first value of object
+            }
+            return $item;
+        }, $parsed['options']);
     }
 }

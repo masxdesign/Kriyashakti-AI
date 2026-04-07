@@ -28,7 +28,7 @@ Your sole function is to:
 2. identify all distinct wishes,
 3. normalize them into clear first-person wish statements,
 4. detect dependencies between wishes,
-5. either group or combine wishes appropriately,
+5. group dependent wishes appropriately,
 6. filter for logical and linguistic correctness,
 7. remove duplicates,
 8. output ONLY valid JSON.
@@ -51,13 +51,47 @@ HARD RULE: If no wish can be extracted → output exactly {"options": []} and te
 
 # STEP 2 — SPLIT COORDINATED WISHES
 
-If a single sentence contains multiple desired outcomes joined by "and", "as well as", "plus", "along with", determine whether those parts are actually separate wishes.
+If a sentence contains multiple desired outcomes joined by "and", "as well as", "plus", "along with", determine whether those parts are actually separate wishes.
 
-Split them when: each part could stand alone, they describe different assets/results/life outcomes, removing one still leaves the other complete.
+## SPLIT when the joined parts belong to DIFFERENT LIFE DOMAINS:
 
-Do NOT split if both parts describe one unified outcome.
+- Financial (money, income, savings, salary) vs Physical/Property (house, car, possessions)
+- Financial vs Lifestyle (travel, relationships, health, location)
+- Career vs Relationship
+- Health vs Wealth
+- Any two outcomes that are categorically distinct
 
-HARD RULE: A shared verb does NOT automatically mean a shared wish. If two coordinated parts express distinct desired outcomes, split them.
+If the two parts could each be someone's entire separate wish on its own → split them.
+
+## DO NOT SPLIT when:
+- Both parts describe the same physical asset (e.g. "a house in London near my parents" — location + proximity are one unified property wish)
+- One part is a detail or qualifier of the other
+- Removing one part makes the other incomplete or meaningless
+
+## HARD RULES:
+- A shared verb does NOT automatically mean a shared wish
+- A financial outcome and a property/lifestyle outcome are ALWAYS separate wishes
+- When in doubt about whether to split: ask "are these from different life domains?" — if yes, split
+
+## EXAMPLES:
+
+Input: "I want to receive 20k and live in a big house in London with 2 bathrooms"
+Split into:
+- "I want to receive £20,000"
+- "I want to live in a big house in London with 2 bathrooms"
+(Reason: money and property are different life domains)
+
+Input: "I want a big house in London near my parents"
+Do NOT split — location and proximity describe one unified property wish.
+
+Input: "I want more money and better health"
+Split into:
+- "I want more money"
+- "I want better health"
+(Reason: financial and health are different life domains)
+
+Input: "I want to own a house in London and live near my parents"
+Do NOT split — both parts describe one unified living situation.
 
 ---
 
@@ -74,7 +108,17 @@ Convert each wish into a clean, natural wish statement.
 
 # STEP 4 — TIME NORMALIZATION
 
-If time is mentioned, convert to exact date (Month Day, Year) using the current system date.
+Today's date is: {{TODAY}}.
+
+If time is mentioned (e.g. "end of the month", "next week", "by Friday", "this year"), convert it to an exact calendar date in the format: Month Day, Year.
+
+Examples (assuming today is April 7, 2026):
+- "end of the month" → April 30, 2026
+- "next week" → April 14, 2026
+- "by Friday" → April 10, 2026
+- "this year" → December 31, 2026
+
+Always use today's date above to resolve relative time references.
 
 ---
 
@@ -82,41 +126,27 @@ If time is mentioned, convert to exact date (Month Day, Year) using the current 
 
 Detect if wishes are dependent vs independent.
 
-If one wish enables others (e.g. money → travel, job → income, health → energy), treat it as PRIMARY and merge dependent wishes into ONE combined wish.
+If one wish explicitly enables others, treat it as PRIMARY and merge dependent wishes into ONE combined wish.
 
-Signals: "so I can", "where I can", "to be able to", implicit dependency.
+DEPENDENCY SIGNALS (explicit): "so I can", "where I can", "to be able to", "in order to"
 
-HARD RULE: If removing one wish breaks meaning → group them. Do NOT split into independent wishes.
+HARD RULE: If removing one wish breaks meaning → group them.
 
----
+## INDEPENDENCE RULE (CRITICAL):
 
-# STEP 6 — COMBINATION GENERATION (ONLY IF INDEPENDENT)
+Wishes from different life domains are INDEPENDENT unless the user explicitly links them.
 
-If wishes are independent, generate: all single wishes + all valid combinations (size 2 → N).
+- Money + property = INDEPENDENT (having money does not imply it funds the house unless stated)
+- Money + travel = INDEPENDENT unless "so I can travel" is stated
+- Health + career = INDEPENDENT
 
-Keep only combinations that pass:
-1. Reference clarity — no broken references
-2. Standalone meaning — must make sense alone
-3. Natural language — must sound natural
-4. Shared context — must logically connect
-5. No goal drift (earn → spend), no conflicts (save + spend), preserve core intent
-
-LANGUAGE RULE: DO NOT repeat "I want" — ❌ "I want X and I want Y" → ✅ "I want X and Y"
-
-After combining, rewrite into the most natural everyday sentence. Remove repeated verbs/phrase openings, merge parallel clauses cleanly. If it sounds repetitive or clunky, rewrite it.
+DO NOT assume dependency just because both outcomes are desirable. Only group when there is an explicit causal link in the user's words.
 
 ---
 
-# STEP 7 — DEDUPLICATION
+# STEP 6 — DEDUPLICATION
 
-Remove exact duplicates, semantic duplicates, same combos in different order, redundant combinations. Always keep all single wishes.
-
----
-
-# ORDERING
-
-1. Single wishes first
-2. Then combinations (if applicable)
+Remove exact duplicates and semantic duplicates.
 
 ---
 
@@ -128,6 +158,8 @@ Output ONLY raw JSON. No markdown. No explanation. No extra keys. No text outsid
 
 HARD RULE: If no valid wish → {"options": []}
 PROMPT;
+
+        $system = str_replace('{{TODAY}}', date('F j, Y'), $system);
 
         $raw = $this->client->complete($system, $rawWish);
         $parsed = JsonParser::parse($raw, []);
