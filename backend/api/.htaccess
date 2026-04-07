@@ -4,5 +4,12 @@ Header always set Access-Control-Allow-Headers "Content-Type"
 Header always set Access-Control-Max-Age "86400"
 
 RewriteEngine On
+
+# Handle OPTIONS preflight
 RewriteCond %{REQUEST_METHOD} OPTIONS
-RewriteRule .* / [R=200,L]
+RewriteRule .* - [R=200,L]
+
+# Route extensionless requests to .php files
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*)$ $1.php [L]
