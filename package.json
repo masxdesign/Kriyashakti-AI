@@ -1,0 +1,9 @@
+{
+  "name": "kriyashakti-ai",
+  "private": true,
+  "scripts": {
+    "dev": "npm run backend & npm run frontend",
+    "backend": "php -S localhost:8080 -t backend backend/router.php",
+    "frontend": "npm --prefix frontend run dev"
+  }
+}
