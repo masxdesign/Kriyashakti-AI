@@ -6,7 +6,7 @@ class OpenRouterClient
     private string $model;
     private string $baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
 
-    public function __construct(string $apiKey, string $model = 'google/gemini-2.5-flash-preview')
+    public function __construct(string $apiKey, string $model = 'google/gemini-2.5-flash')
     {
         $this->apiKey = $apiKey;
         $this->model = $model;

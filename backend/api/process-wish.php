@@ -97,6 +97,6 @@ try {
     if ($msg === 'Please describe a personal goal or desire.') {
         jsonError($msg, 400);
     } else {
-        jsonError('Something went wrong. Please try again.', 500);
+        jsonError($msg, 500); // TEMP: expose real error for debugging
     }
 }
