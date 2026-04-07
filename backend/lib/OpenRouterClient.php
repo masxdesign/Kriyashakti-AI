@@ -6,7 +6,7 @@ class OpenRouterClient
     private string $model;
     private string $baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
 
-    public function __construct(string $apiKey, string $model = 'google/gemini-2.5-flash')
+    public function __construct(string $apiKey, string $model = 'google/gemini-flash-1.5')
     {
         $this->apiKey = $apiKey;
         $this->model = $model;
@@ -28,6 +28,7 @@ class OpenRouterClient
                 ['role' => 'system', 'content' => $systemPrompt],
                 ['role' => 'user', 'content' => $userMessage],
             ],
+            'response_format' => ['type' => 'json_object'],
         ]);
 
         $ch = curl_init($this->baseUrl);
@@ -62,11 +63,14 @@ class OpenRouterClient
 
         $content = $decoded['choices'][0]['message']['content'] ?? null;
         if ($content === null) {
-            // Log full response for debugging
             file_put_contents(__DIR__ . '/../../debug.log', date('Y-m-d H:i:s') . "\nHTTP: {$httpCode}\nRESPONSE: " . $response . "\n\n", FILE_APPEND);
             throw new RuntimeException('OpenRouter error: empty response content. HTTP=' . $httpCode);
         }
-        // Log content for debugging
+
+        // Strip <think>...</think> blocks that some models emit before the JSON
+        $content = preg_replace('/<think>.*?<\/think>/s', '', $content);
+        $content = trim($content);
+
         file_put_contents(__DIR__ . '/../../debug.log', date('Y-m-d H:i:s') . "\nCONTENT: " . $content . "\n\n", FILE_APPEND);
         return $content;
     }
