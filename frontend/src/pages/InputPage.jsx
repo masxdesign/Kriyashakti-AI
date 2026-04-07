@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { processWish } from '../api/processWish.js'
+import { setWishResult } from '../store/wishResult.js'
 import WishForm from '../components/WishForm.jsx'
 
 export default function InputPage() {
@@ -13,7 +14,8 @@ export default function InputPage() {
     setError(null)
     try {
       const result = await processWish(wish)
-      navigate({ to: '/result', state: { result } })
+      setWishResult(result)
+      navigate({ to: '/result' })
     } catch (err) {
       setError(err.message)
     } finally {
