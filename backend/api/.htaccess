@@ -1,0 +1,6 @@
+Options -MultiViews
+RewriteEngine On
+
+# Pass OPTIONS requests through to PHP
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule .* - [L]

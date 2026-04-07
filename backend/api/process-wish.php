@@ -11,24 +11,22 @@ if (file_exists($envFile)) {
     }
 }
 
-// CORS: allow only from the configured GitHub Pages origin
-$allowedOrigin = getenv('ALLOWED_ORIGIN') ?: '';
+// CORS headers — sent on every request including preflight
+$allowedOrigin = getenv('ALLOWED_ORIGIN') ?: 'https://masxdesign.github.io';
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-
-if ($allowedOrigin && $origin === $allowedOrigin) {
+if ($origin === $allowedOrigin) {
     header("Access-Control-Allow-Origin: {$origin}");
-} elseif (!$allowedOrigin) {
-    // Dev fallback: allow all origins when ALLOWED_ORIGIN is not set
-    header('Access-Control-Allow-Origin: *');
+} else {
+    header("Access-Control-Allow-Origin: {$allowedOrigin}");
 }
-
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Max-Age: 86400');
 header('Content-Type: application/json');
 
-// Handle CORS preflight
+// Handle CORS preflight — must respond before any other logic
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
+    http_response_code(200);
     exit;
 }
 
