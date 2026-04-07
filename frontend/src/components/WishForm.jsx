@@ -1,5 +1,13 @@
 import { useState } from 'react'
 
+const EXAMPLES = [
+  'I want more money flowing into my life every month',
+  'I want to lose weight and feel confident and energetic in my body',
+  'I want a loving, committed relationship with the right person',
+  'I want to be happy, calm and at peace with my life',
+  'I want to grow my career and earn what I truly deserve',
+]
+
 export default function WishForm({ onSubmit, isLoading, initialValue = '' }) {
   const [value, setValue] = useState(initialValue)
   const [touched, setTouched] = useState(false)
@@ -27,6 +35,19 @@ export default function WishForm({ onSubmit, isLoading, initialValue = '' }) {
       {showError && (
         <p className="text-sm text-red-500 -mt-2">Please write your wish before continuing.</p>
       )}
+      <div className="flex flex-wrap gap-2">
+        {EXAMPLES.map(example => (
+          <button
+            key={example}
+            type="button"
+            disabled={isLoading}
+            onClick={() => setValue(example)}
+            className="rounded-full border border-stone-200 bg-white/60 px-3 py-1.5 text-xs text-stone-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50/60 transition-colors disabled:opacity-50"
+          >
+            {example}
+          </button>
+        ))}
+      </div>
       <button
         type="submit"
         disabled={isLoading}
