@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      // Encode the full path into a query param and redirect to index.html
+      // so GitHub Pages serves it, then index.html decodes and restores the URL.
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 2).join('/') +
+        '/?p=' + encodeURIComponent(l.pathname.slice(1) + (l.search ? l.search : '') + l.hash)
+      );
+    </script>
+  </head>
+  <body></body>
+</html>
