@@ -62,8 +62,12 @@ class OpenRouterClient
 
         $content = $decoded['choices'][0]['message']['content'] ?? null;
         if ($content === null) {
-            throw new RuntimeException('OpenRouter error: empty response content');
+            // Log full response for debugging
+            file_put_contents(__DIR__ . '/../../debug.log', date('Y-m-d H:i:s') . "\nHTTP: {$httpCode}\nRESPONSE: " . $response . "\n\n", FILE_APPEND);
+            throw new RuntimeException('OpenRouter error: empty response content. HTTP=' . $httpCode);
         }
+        // Log content for debugging
+        file_put_contents(__DIR__ . '/../../debug.log', date('Y-m-d H:i:s') . "\nCONTENT: " . $content . "\n\n", FILE_APPEND);
         return $content;
     }
 }
