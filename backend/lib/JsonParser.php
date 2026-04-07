@@ -25,8 +25,19 @@ class JsonParser
             $start = strpos($stripped, '{');
             $end   = strrpos($stripped, '}');
             if ($start !== false && $end !== false && $end > $start) {
-                $decoded = json_decode(substr($stripped, $start, $end - $start + 1), true);
+                $stripped = substr($stripped, $start, $end - $start + 1);
+                $decoded = json_decode($stripped, true);
             }
+        }
+
+        // If still failing, sanitize unescaped control characters inside string values
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $sanitized = preg_replace_callback(
+                '/"(?:[^"\\\\]|\\\\.)*"/s',
+                fn($m) => str_replace(["\n", "\r", "\t"], ['\n', '\r', '\t'], $m[0]),
+                $stripped
+            );
+            $decoded = json_decode($sanitized, true);
         }
 
         if (json_last_error() !== JSON_ERROR_NONE) {
