@@ -50,12 +50,14 @@ const SwipeCard = forwardRef(function SwipeCard({ option, visualization, onSwipe
     <motion.div
       {...bind()}
       style={{ x, rotate, opacity, touchAction: 'none' }}
-      className="absolute inset-0 rounded-2xl border border-stone-100 bg-white px-6 py-6 flex flex-col gap-4 cursor-grab active:cursor-grabbing"
+      className="absolute inset-0 rounded-2xl border border-stone-100 bg-white px-6 py-6 flex flex-col gap-4 cursor-grab active:cursor-grabbing overflow-hidden"
     >
-      <p className="text-stone-800 text-base font-medium leading-snug">{option}</p>
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Picture this in your mind</p>
-        <p className="text-stone-600 text-sm leading-relaxed">{visualization}</p>
+      <div className="flex flex-col gap-4 overflow-y-auto flex-1 pr-1">
+        <p className="text-stone-800 text-base font-medium leading-snug">{option}</p>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Picture this in your mind</p>
+          <p className="text-stone-600 text-sm leading-relaxed">{visualization}</p>
+        </div>
       </div>
       <motion.div style={{ opacity: nextLabel }} className="absolute right-4 top-4 rounded-full bg-stone-100 px-3 py-1 text-xs text-stone-400 pointer-events-none">
         next →
@@ -106,19 +108,21 @@ export default function SuggestionSlider({ options, visualizations }) {
         Version {index + 1} of {total} — pick the one that feels right
       </p>
 
-      <div className="relative h-[230px] select-none">
+      <div className="relative h-[280px] select-none">
         {/* Card behind — scales up as front card is dragged */}
         <motion.div
-          className="absolute inset-0 rounded-2xl border border-stone-100 bg-white px-6 py-6 flex flex-col gap-4"
+          className="absolute inset-0 rounded-2xl border border-stone-100 bg-white px-6 py-6 flex flex-col gap-4 overflow-hidden"
           style={{
             scale: useTransform(x, [-300, -60, 0, 60, 300], [1, 1, 0.97, 1, 1]),
             transformOrigin: 'bottom',
           }}
         >
-          <p className="text-stone-800 text-base font-medium leading-snug">{options[behindIndex]}</p>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Picture this in your mind</p>
-            <p className="text-stone-600 text-sm leading-relaxed">{visualizations[behindIndex]}</p>
+          <div className="flex flex-col gap-4 overflow-hidden flex-1">
+            <p className="text-stone-800 text-base font-medium leading-snug">{options[behindIndex]}</p>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Picture this in your mind</p>
+              <p className="text-stone-600 text-sm leading-relaxed">{visualizations[behindIndex]}</p>
+            </div>
           </div>
         </motion.div>
 
