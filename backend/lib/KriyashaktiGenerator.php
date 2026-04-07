@@ -89,7 +89,7 @@ IMPORTANT: This rewritten goal is INTERNAL ONLY. NEVER output the rewritten vers
 
 6. HARD VALIDATION: Each script MUST be ONE sentence only. Include all required components. Include every major outcome explicitly stated in the selected wish. No extra text. No extra sentences. No commas before the safety clause.
 
-7. VARIATION REQUIREMENT: EXACTLY 5 variations. Same meaning, slight phrasing changes. Do not remove any major outcome across variations.
+7. VARIATION REQUIREMENT: EXACTLY 5 variations. Same meaning, but each must use DISTINCT wording for the core outcome — use synonyms and rephrase the goal itself, not just the opening phrase. Prefer words that invoke vivid, concrete imagery over abstract or bureaucratic language. For example, "income boost" paints a clearer picture than "pay increase"; "financial leap" is more alive than "salary raise"; "money flowing in" is more visceral than "earnings increase". Each option should feel like a slightly different lens on the same reality. Never repeat the same phrasing for the core goal across two options. Do not remove any major outcome across variations.
 
 8. PLAIN LANGUAGE (CRITICAL): All scripts must use simple, everyday spoken English. Must sound like something a real person would naturally say about their life — not poetic, abstract, or spiritual.
 
