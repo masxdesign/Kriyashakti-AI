@@ -1,14 +1,11 @@
 import { createRootRoute, createRoute, Outlet } from '@tanstack/react-router'
+import InputPage from './pages/InputPage.jsx'
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
 })
 
-// Placeholder components — will be replaced in Task 3 and Task 4
-function InputPagePlaceholder() {
-  return <div>Input page — coming soon</div>
-}
-
+// Placeholder component — will be replaced in Task 4
 function ResultPagePlaceholder() {
   return <div>Result page — coming soon</div>
 }
@@ -16,7 +13,7 @@ function ResultPagePlaceholder() {
 export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: InputPagePlaceholder,
+  component: InputPage,
 })
 
 export const resultRoute = createRoute({
