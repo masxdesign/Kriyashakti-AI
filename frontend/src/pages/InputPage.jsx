@@ -4,6 +4,7 @@ import { processWish } from '../api/processWish.js'
 import { setWishResult, getPendingEdit, clearPendingEdit } from '../store/wishResult.js'
 import { findInHistory, saveToHistory } from '../store/historyDB.js'
 import WishForm from '../components/WishForm.jsx'
+import LoadingScreen from '../components/LoadingScreen.jsx'
 
 export default function InputPage() {
   const navigate = useNavigate()
@@ -42,6 +43,8 @@ export default function InputPage() {
     }
   }
 
+  if (isLoading) return <LoadingScreen />
+
   return (
     <main className="min-h-screen bg-linear-to-br from-violet-50 to-stone-50 flex flex-col items-center justify-center px-4 py-16 gap-8">
       <div className="text-center max-w-lg">
@@ -64,6 +67,14 @@ export default function InputPage() {
         className="text-sm text-stone-400 hover:text-violet-600 transition-colors"
       >
         View history
+      </button>
+
+      {/* DEV ONLY */}
+      <button
+        onClick={() => setIsLoading(true)}
+        className="text-xs text-stone-300 hover:text-stone-400 transition-colors"
+      >
+        [test loader]
       </button>
     </main>
   )
