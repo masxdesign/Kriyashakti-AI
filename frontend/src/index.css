@@ -27,207 +27,140 @@
   position: fixed;
   inset: 0;
   overflow: hidden;
-  /* Matches the app: violet-50 → stone-50 gradient */
-  background: linear-gradient(135deg, #f5f3ff 0%, #fdf8f6 55%, #fafaf9 100%);
+  background: linear-gradient(160deg, #f5f3ff 0%, #fdf8f6 60%, #fafaf9 100%);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: 56px;
   font-family: Inter, Arial, sans-serif;
 }
 
-/* Subtle noise/grain layer for depth */
 .kriya-loader__bg {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(139, 92, 246, 0.10) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 40% at 80% 15%, rgba(167, 139, 250, 0.08) 0%, transparent 65%),
-    radial-gradient(ellipse 40% 60% at 75% 80%, rgba(196, 181, 253, 0.07) 0%, transparent 60%);
+    radial-gradient(ellipse 55% 45% at 15% 25%, rgba(139,92,246,0.09) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 55% at 85% 75%, rgba(168,85,247,0.07) 0%, transparent 65%);
   pointer-events: none;
 }
 
-/* Ambient blobs — matching violet palette */
 .kriya-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(60px);
+  filter: blur(70px);
   pointer-events: none;
-  will-change: transform;
 }
 
 .kriya-blob--1 {
-  width: 360px;
-  height: 360px;
-  background: rgba(139, 92, 246, 0.12);
-  top: -60px;
-  left: -80px;
-  animation: blob-drift-1 14s ease-in-out infinite;
+  width: 400px;
+  height: 400px;
+  background: rgba(139,92,246,0.10);
+  top: -80px;
+  left: -100px;
+  animation: blob-drift-1 16s ease-in-out infinite;
 }
 
 .kriya-blob--2 {
-  width: 300px;
-  height: 300px;
-  background: rgba(167, 139, 250, 0.10);
-  bottom: -40px;
-  right: -60px;
-  animation: blob-drift-2 17s ease-in-out infinite;
+  width: 320px;
+  height: 320px;
+  background: rgba(168,85,247,0.08);
+  bottom: -60px;
+  right: -80px;
+  animation: blob-drift-2 19s ease-in-out infinite;
 }
 
-.kriya-blob--3 {
-  width: 240px;
-  height: 240px;
-  background: rgba(196, 181, 253, 0.09);
-  top: 50%;
-  left: 50%;
-  translate: -50% -50%;
-  animation: blob-drift-3 11s ease-in-out infinite;
-}
+/* ── Chakra column ── */
 
-/* ── 3D Scene ── */
-
-.kriya-scene {
-  perspective: 600px;
-  width: 220px;
-  height: 220px;
-  margin-bottom: 40px;
+.chakra-column {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   z-index: 2;
+  padding: 8px 0;
 }
 
-.kriya-sphere-wrap {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  animation: scene-rock 8s ease-in-out infinite;
-}
-
-/* Central glowing orb */
-.kriya-orb-core {
+/* Sushumna nadi — glowing central channel */
+.chakra-channel {
   position: absolute;
-  inset: 60px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 38% 35%,
-    #ede9fe 0%,
-    #c4b5fd 30%,
-    #8b5cf6 65%,
-    #6d28d9 100%
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(
+    to bottom,
+    rgba(168,85,247,0.70),
+    rgba(99,102,241,0.60),
+    rgba(6,182,212,0.55),
+    rgba(34,197,94,0.55),
+    rgba(234,179,8,0.55),
+    rgba(249,115,22,0.55),
+    rgba(239,68,68,0.65)
   );
-  box-shadow:
-    0 0 0 1px rgba(139, 92, 246, 0.25),
-    0 0 24px 8px rgba(139, 92, 246, 0.20),
-    0 0 60px 20px rgba(139, 92, 246, 0.10),
-    inset 0 -6px 16px rgba(109, 40, 217, 0.35),
-    inset 4px 4px 10px rgba(255, 255, 255, 0.45);
-  animation: orb-breathe 3.4s ease-in-out infinite;
-  transform: translateZ(10px);
+  border-radius: 3px;
+  filter: blur(1px);
+  animation: channel-pulse 2.8s ease-in-out infinite;
 }
 
-/* ── 3D Rings — each positioned in 3D space ── */
+/* Each chakra node — size set inline via JS */
+.chakra-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
-.kriya-ring {
+/* SVG layers — all absolutely positioned over the node */
+.chakra-svg {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
-  transform-style: preserve-3d;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-/* Ring 1: tilted ~65° on X, slow clockwise */
-.kriya-ring--1 {
-  animation: ring-spin-1 7s linear infinite;
-  transform: rotateX(65deg) rotateY(0deg);
+/* Outer petals: slow clockwise, staggered by --delay */
+.chakra-svg--outer {
+  animation: spin-cw var(--spin-dur) linear infinite;
+  animation-delay: calc(var(--delay) * -1); /* negative = pre-offset so they start spread */
 }
 
-/* Ring 2: tilted on Y + slight X, counter-clockwise, faster */
-.kriya-ring--2 {
-  animation: ring-spin-2 5s linear infinite;
-  transform: rotateX(20deg) rotateY(60deg);
+/* Inner petals: slightly faster counter-clockwise */
+.chakra-svg--inner {
+  animation: spin-ccw calc(var(--spin-dur) * 0.65) linear infinite;
+  animation-delay: calc(var(--delay) * -0.5);
 }
 
-/* Ring 3: near-horizontal, very slow */
-.kriya-ring--3 {
-  animation: ring-spin-3 11s linear infinite;
-  transform: rotateX(80deg) rotateY(30deg);
-}
 
-.kriya-ring__track {
+/* Glow aura behind each chakra */
+.chakra-aura {
   position: absolute;
+  inset: -4px;
   border-radius: 50%;
-  border: 1.5px solid rgba(139, 92, 246, 0.30);
-  box-shadow:
-    0 0 8px rgba(139, 92, 246, 0.12),
-    inset 0 0 8px rgba(139, 92, 246, 0.06);
-}
-
-.kriya-ring--1 .kriya-ring__track {
-  border-color: rgba(139, 92, 246, 0.35);
-  inset: 10px;
-}
-.kriya-ring--2 .kriya-ring__track {
-  border-color: rgba(167, 139, 250, 0.30);
-  inset: 20px;
-}
-.kriya-ring--3 .kriya-ring__track {
-  border-color: rgba(196, 181, 253, 0.25);
-  inset: 28px;
-}
-
-/* Dot riding each ring */
-.kriya-ring__dot {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #7c3aed;
-  box-shadow:
-    0 0 6px 2px rgba(124, 58, 237, 0.60),
-    0 0 14px 4px rgba(124, 58, 237, 0.25);
-  top: -4px;
-  left: calc(50% - 4px);
-}
-
-.kriya-ring--1 .kriya-ring__dot { background: #7c3aed; }
-.kriya-ring--2 .kriya-ring__dot { background: #8b5cf6; width: 6px; height: 6px; top: -3px; left: calc(50% - 3px); }
-.kriya-ring--3 .kriya-ring__dot { background: #a78bfa; width: 5px; height: 5px; top: -2.5px; left: calc(50% - 2.5px); }
-
-/* ── Particle sparks floating around the orb ── */
-
-.kriya-spark {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #c4b5fd;
-  box-shadow: 0 0 6px 2px rgba(196, 181, 253, 0.70);
+  background: radial-gradient(circle, var(--chakra-glow) 0%, transparent 70%);
+  animation: aura-pulse calc(2.4s + var(--delay) * 0.3) ease-in-out infinite;
+  animation-delay: var(--delay);
   pointer-events: none;
 }
-
-.kriya-spark--1 { top: 18%;  left: 22%;  animation: spark-float 4.1s ease-in-out infinite; }
-.kriya-spark--2 { top: 12%;  right: 24%; animation: spark-float 5.3s ease-in-out infinite 0.7s; }
-.kriya-spark--3 { top: 55%;  left: 10%;  animation: spark-float 3.8s ease-in-out infinite 1.2s; }
-.kriya-spark--4 { top: 60%;  right: 12%; animation: spark-float 6.0s ease-in-out infinite 0.3s; }
-.kriya-spark--5 { bottom: 18%; left: 35%; animation: spark-float 4.6s ease-in-out infinite 1.8s; }
-.kriya-spark--6 { bottom: 22%; right: 30%; animation: spark-float 3.5s ease-in-out infinite 0.9s; }
 
 /* ── Text ── */
 
 .kriya-loader__copy {
   position: relative;
   z-index: 2;
-  text-align: center;
-  max-width: min(90vw, 520px);
+  text-align: left;
+  max-width: min(90vw, 340px);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 }
 
 .kriya-loader__title {
   margin: 0;
-  font-size: clamp(22px, 3.5vw, 32px);
+  font-size: clamp(20px, 3vw, 28px);
   font-weight: 700;
   letter-spacing: -0.03em;
   color: #1c1917;
@@ -236,31 +169,29 @@
 
 .kriya-loader__tagline {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
   color: #78716c;
-  max-width: 400px;
 }
 
 .kriya-loader__status {
   margin: 4px 0 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #7c3aed;
-  min-height: 22px;
+  min-height: 20px;
   transition: opacity 0.3s ease;
 }
 
-/* Progress dots */
 .kriya-dots {
   display: flex;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .kriya-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #e9d5ff;
   transition: background 0.3s ease, transform 0.3s ease;
@@ -268,61 +199,44 @@
 
 .kriya-dot--active {
   background: #7c3aed;
-  transform: scale(1.3);
+  transform: scale(1.35);
 }
 
 /* ── Keyframes ── */
 
-@keyframes scene-rock {
-  0%, 100% { transform: rotateX(4deg)  rotateY(-6deg); }
-  25%       { transform: rotateX(-3deg) rotateY(5deg); }
-  50%       { transform: rotateX(5deg)  rotateY(8deg); }
-  75%       { transform: rotateX(-4deg) rotateY(-4deg); }
+@keyframes spin-cw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-@keyframes orb-breathe {
-  0%, 100% { transform: translateZ(10px) scale(0.96); }
-  50%       { transform: translateZ(20px) scale(1.04); }
+@keyframes spin-ccw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
 }
 
-@keyframes ring-spin-1 {
-  from { transform: rotateX(65deg) rotateZ(0deg); }
-  to   { transform: rotateX(65deg) rotateZ(360deg); }
+@keyframes aura-pulse {
+  0%, 100% { opacity: 0.40; transform: scale(0.95); }
+  50%       { opacity: 0.80; transform: scale(1.05); }
 }
 
-@keyframes ring-spin-2 {
-  from { transform: rotateX(20deg) rotateY(60deg) rotateZ(0deg); }
-  to   { transform: rotateX(20deg) rotateY(60deg) rotateZ(-360deg); }
-}
-
-@keyframes ring-spin-3 {
-  from { transform: rotateX(80deg) rotateY(30deg) rotateZ(0deg); }
-  to   { transform: rotateX(80deg) rotateY(30deg) rotateZ(360deg); }
+@keyframes channel-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%       { opacity: 1; }
 }
 
 @keyframes blob-drift-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%       { transform: translate(40px, 30px) scale(1.05); }
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(30px, 20px); }
 }
 
 @keyframes blob-drift-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%       { transform: translate(-30px, -40px) scale(0.95); }
-}
-
-@keyframes blob-drift-3 {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  33%       { transform: translate(-52%, -48%) scale(1.08); }
-  66%       { transform: translate(-48%, -52%) scale(0.94); }
-}
-
-@keyframes spark-float {
-  0%, 100% { transform: translate(0, 0) scale(1);   opacity: 0.5; }
-  50%       { transform: translate(6px, -10px) scale(1.4); opacity: 1; }
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(-25px, -30px); }
 }
 
 @media (max-width: 640px) {
-  .kriya-scene { width: 180px; height: 180px; }
-  .kriya-loader__title { font-size: 20px; }
-  .kriya-loader__tagline { font-size: 13px; }
+  .kriya-loader { flex-direction: column; gap: 32px; }
+  .kriya-loader__copy { text-align: center; align-items: center; }
+  .chakra-node { width: 52px; height: 52px; }
+  .chakra-column { gap: 4px; }
 }
