@@ -61,6 +61,42 @@ export async function getAllHistory() {
   })
 }
 
+export async function updateVisualizationsInHistory(id, wishIndex, visualizations) {
+  const db = await openDB()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite')
+    const store = tx.objectStore(STORE_NAME)
+    const getReq = store.get(id)
+    getReq.onsuccess = e => {
+      const entry = e.target.result
+      if (!entry) return resolve()
+      entry.data[wishIndex].visualizations = visualizations
+      const putReq = store.put(entry)
+      putReq.onsuccess = () => resolve()
+      putReq.onerror = e => reject(e.target.error)
+    }
+    getReq.onerror = e => reject(e.target.error)
+  })
+}
+
+export async function updateAffirmationsInHistory(id, wishIndex, affirmations) {
+  const db = await openDB()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite')
+    const store = tx.objectStore(STORE_NAME)
+    const getReq = store.get(id)
+    getReq.onsuccess = e => {
+      const entry = e.target.result
+      if (!entry) return resolve()
+      entry.data[wishIndex].affirmations = affirmations
+      const putReq = store.put(entry)
+      putReq.onsuccess = () => resolve()
+      putReq.onerror = e => reject(e.target.error)
+    }
+    getReq.onerror = e => reject(e.target.error)
+  })
+}
+
 export async function deleteFromHistory(id) {
   const db = await openDB()
   return new Promise((resolve, reject) => {

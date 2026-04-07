@@ -1,6 +1,5 @@
 <?php
 
-// Load .env file (one.com shared hosting doesn't expose env vars automatically)
 $envFile = __DIR__ . '/../.env';
 if (file_exists($envFile)) {
     foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
@@ -11,7 +10,6 @@ if (file_exists($envFile)) {
     }
 }
 
-// CORS headers — sent on every request including preflight
 $allowedOrigin = getenv('ALLOWED_ORIGIN') ?: 'https://masxdesign.github.io';
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if ($origin === $allowedOrigin) {
@@ -24,7 +22,6 @@ header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Max-Age: 86400');
 header('Content-Type: application/json');
 
-// Handle CORS preflight — must respond before any other logic
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
@@ -37,8 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 require_once __DIR__ . '/../lib/OpenRouterClient.php';
-require_once __DIR__ . '/../lib/WishExtractor.php';
-require_once __DIR__ . '/../lib/KriyashaktiGenerator.php';
+require_once __DIR__ . '/../lib/AffirmationGenerator.php';
 
 function jsonError(string $message, int $status = 400): void
 {
@@ -47,53 +43,28 @@ function jsonError(string $message, int $status = 400): void
     exit;
 }
 
-// Parse request body
 $body = json_decode(file_get_contents('php://input'), true);
 if (json_last_error() !== JSON_ERROR_NONE || !is_array($body)) {
     jsonError('Invalid request body.');
 }
-$wish = trim($body['wish'] ?? '');
 
-if (!$wish) {
-    jsonError('Please describe a personal goal or desire.');
+$option = trim($body['option'] ?? '');
+if (!$option) {
+    jsonError('option must be a non-empty string.');
 }
+$visualization = isset($body['visualization']) ? trim($body['visualization']) : null;
 
-// Bootstrap
 $apiKey = getenv('OPENROUTER_API_KEY');
 if (!$apiKey) {
     jsonError('Something went wrong. Please try again.', 500);
 }
 
-$client = new OpenRouterClient($apiKey);
-$extractor = new WishExtractor($client);
-$kriyashaktiGen = new KriyashaktiGenerator($client);
-
-// Run pipeline
 try {
-    // Stage 1: extract wishes
-    $extractedWishes = $extractor->extract($wish);
+    $client = new OpenRouterClient($apiKey);
+    $affirmationGen = new AffirmationGenerator($client);
+    $affirmation = $affirmationGen->generate($option, $visualization ?: null);
 
-    // Stage 2: generate Kriyashakti statements for each wish
-    $data = [];
-    foreach ($extractedWishes as $extractedWish) {
-        $options = $kriyashaktiGen->generate($extractedWish);
-        $data[] = [
-            'wish' => $extractedWish,
-            'options' => $options,
-            'visualizations' => null,
-        ];
-    }
-
-    echo json_encode([
-        'wish' => $wish,
-        'data' => $data,
-    ]);
-
+    echo json_encode(['affirmation' => $affirmation]);
 } catch (RuntimeException $e) {
-    $msg = $e->getMessage();
-    if ($msg === 'Please describe a personal goal or desire.') {
-        jsonError($msg, 400);
-    } else {
-        jsonError($msg, 500); // TEMP: expose real error
-    }
+    jsonError($e->getMessage(), 500);
 }

@@ -33,8 +33,8 @@ export default function InputPage() {
       }
 
       const result = await processWish(wish)
-      await saveToHistory(result)
-      setWishResult(result)
+      const id = await saveToHistory(result)
+      setWishResult({ ...result, id })
       navigate({ to: '/result' })
     } catch (err) {
       setError(err.message)

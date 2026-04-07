@@ -7,4 +7,14 @@ if ($uri === '/api/process-wish') {
     return true;
 }
 
+if ($uri === '/api/generate-visualizations') {
+    require __DIR__ . '/api/generate-visualizations.php';
+    return true;
+}
+
+if ($uri === '/api/generate-affirmation') {
+    require __DIR__ . '/api/generate-affirmation.php';
+    return true;
+}
+
 return false;

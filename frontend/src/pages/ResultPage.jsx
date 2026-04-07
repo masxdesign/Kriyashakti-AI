@@ -1,9 +1,10 @@
 import { useNavigate } from '@tanstack/react-router'
-import { getWishResult, clearWishResult } from '../store/wishResult.js'
+import { getWishResult, clearWishResult, setWishResult } from '../store/wishResult.js'
 import OriginalWishCard from '../components/OriginalWishCard.jsx'
 import CoreIntentionsChips from '../components/CoreIntentionsChips.jsx'
 import SuggestionSlider from '../components/SuggestionSlider.jsx'
 import HowToUse from '../components/HowToUse.jsx'
+import { updateVisualizationsInHistory, updateAffirmationsInHistory } from '../store/historyDB.js'
 
 export default function ResultPage() {
   const navigate = useNavigate()
@@ -15,6 +16,20 @@ export default function ResultPage() {
   function handleStartOver() {
     clearWishResult()
     navigate({ to: '/' })
+  }
+
+  async function handleVisualizationsGenerated(viz) {
+    if (result.id != null) {
+      await updateVisualizationsInHistory(result.id, 0, viz)
+      setWishResult({ ...result, data: result.data.map((item, i) => i === 0 ? { ...item, visualizations: viz } : item) })
+    }
+  }
+
+  async function handleAffirmationsGenerated(aff) {
+    if (result.id != null) {
+      await updateAffirmationsInHistory(result.id, 0, aff)
+      setWishResult({ ...result, data: result.data.map((item, i) => i === 0 ? { ...item, affirmations: aff } : item) })
+    }
   }
 
   return (
@@ -34,7 +49,13 @@ export default function ResultPage() {
             <HowToUse />
           </div>
           <div className="w-full max-w-2xl">
-            <SuggestionSlider options={result.data[0].options} visualizations={result.data[0].visualizations} />
+            <SuggestionSlider
+              options={result.data[0].options}
+              visualizations={result.data[0].visualizations}
+              affirmations={result.data[0].affirmations}
+              onVisualizationsGenerated={handleVisualizationsGenerated}
+              onAffirmationsGenerated={handleAffirmationsGenerated}
+            />
           </div>
         </>
       ) : (

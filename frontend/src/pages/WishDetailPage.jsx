@@ -1,17 +1,33 @@
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { getWishResult } from '../store/wishResult.js'
+import { getWishResult, setWishResult } from '../store/wishResult.js'
 import SuggestionSlider from '../components/SuggestionSlider.jsx'
 import HowToUse from '../components/HowToUse.jsx'
+import { updateVisualizationsInHistory, updateAffirmationsInHistory } from '../store/historyDB.js'
 
 export default function WishDetailPage() {
   const navigate = useNavigate()
   const { index } = useParams({ from: '/result/wish/$index' })
   const result = getWishResult()
-  const item = result.data[Number(index)]
+  const wishIndex = Number(index)
+  const item = result.data[wishIndex]
 
   if (!item) {
     navigate({ to: '/result' })
     return null
+  }
+
+  async function handleVisualizationsGenerated(viz) {
+    if (result.id != null) {
+      await updateVisualizationsInHistory(result.id, wishIndex, viz)
+      setWishResult({ ...result, data: result.data.map((d, i) => i === wishIndex ? { ...d, visualizations: viz } : d) })
+    }
+  }
+
+  async function handleAffirmationsGenerated(aff) {
+    if (result.id != null) {
+      await updateAffirmationsInHistory(result.id, wishIndex, aff)
+      setWishResult({ ...result, data: result.data.map((d, i) => i === wishIndex ? { ...d, affirmations: aff } : d) })
+    }
   }
 
   return (
@@ -35,7 +51,13 @@ export default function WishDetailPage() {
       </div>
 
       <div className="w-full max-w-2xl">
-        <SuggestionSlider options={item.options} visualizations={item.visualizations} />
+        <SuggestionSlider
+          options={item.options}
+          visualizations={item.visualizations}
+          affirmations={item.affirmations}
+          onVisualizationsGenerated={handleVisualizationsGenerated}
+          onAffirmationsGenerated={handleAffirmationsGenerated}
+        />
       </div>
     </main>
   )
