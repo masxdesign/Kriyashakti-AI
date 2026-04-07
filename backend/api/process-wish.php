@@ -7,7 +7,7 @@ if (file_exists($envFile)) {
         if (str_starts_with(trim($line), '#')) continue;
         if (!str_contains($line, '=')) continue;
         [$key, $value] = explode('=', $line, 2);
-        putenv(trim($key) . '=' . trim($value));
+        putenv(trim($key) . '=' . trim(str_replace(["\r", "\n"], '', $value)));
     }
 }
 
@@ -62,7 +62,7 @@ if (!$wish) {
 // Bootstrap
 $apiKey = getenv('OPENROUTER_API_KEY');
 if (!$apiKey) {
-    jsonError('Something went wrong. Please try again.', 500);
+    jsonError('API key not configured. ENV file found: ' . (file_exists(__DIR__ . '/../.env') ? 'yes' : 'no'), 500);
 }
 
 $client = new OpenRouterClient($apiKey);
