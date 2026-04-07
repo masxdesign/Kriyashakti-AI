@@ -41,6 +41,9 @@ PROMPT;
             throw new RuntimeException('Something went wrong. Please try again.');
         }
 
-        return $parsed['options'];
+        return array_map(
+            fn($s) => rtrim($s, '.!') . '. So happy and grateful that this has materialized properly and rapidly!',
+            $parsed['options']
+        );
     }
 }
