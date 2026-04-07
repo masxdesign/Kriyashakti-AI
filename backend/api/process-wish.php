@@ -62,7 +62,7 @@ if (!$wish) {
 // Bootstrap
 $apiKey = getenv('OPENROUTER_API_KEY');
 if (!$apiKey) {
-    jsonError('API key not configured. ENV file found: ' . (file_exists(__DIR__ . '/../.env') ? 'yes' : 'no'), 500);
+    jsonError('Something went wrong. Please try again.', 500);
 }
 
 $client = new OpenRouterClient($apiKey);
@@ -97,6 +97,6 @@ try {
     if ($msg === 'Please describe a personal goal or desire.') {
         jsonError($msg, 400);
     } else {
-        jsonError($msg, 500); // TEMP: expose real error for debugging
+        jsonError('Something went wrong. Please try again.', 500);
     }
 }

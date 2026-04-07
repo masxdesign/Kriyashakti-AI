@@ -17,7 +17,17 @@ class JsonParser
         $stripped = preg_replace('/\s*```\s*$/', '', $stripped);
         $stripped = trim($stripped);
 
+        // Try direct decode first
         $decoded = json_decode($stripped, true);
+
+        // If that fails, extract the first {...} block from the string (handles prose wrapping)
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $start = strpos($stripped, '{');
+            $end   = strrpos($stripped, '}');
+            if ($start !== false && $end !== false && $end > $start) {
+                $decoded = json_decode(substr($stripped, $start, $end - $start + 1), true);
+            }
+        }
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new RuntimeException('JSON decode error: ' . json_last_error_msg());
