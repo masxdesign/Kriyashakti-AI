@@ -60,6 +60,10 @@ class OpenRouterClient
             throw new RuntimeException('OpenRouter error: ' . $msg);
         }
 
-        return $decoded['choices'][0]['message']['content'] ?? '';
+        $content = $decoded['choices'][0]['message']['content'] ?? null;
+        if ($content === null) {
+            throw new RuntimeException('OpenRouter error: empty response content');
+        }
+        return $content;
     }
 }
