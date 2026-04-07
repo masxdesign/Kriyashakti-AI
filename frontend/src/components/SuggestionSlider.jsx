@@ -1,14 +1,25 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, forwardRef, useImperativeHandle } from 'react'
 import { motion, useMotionValue, useTransform, useMotionValueEvent, animate } from 'motion/react'
 import { useDrag } from '@use-gesture/react'
 
-function SwipeCard({ option, visualization, onSwipe, x }) {
+const SwipeCard = forwardRef(function SwipeCard({ option, visualization, onSwipe, x }, ref) {
   const rotate = useTransform(x, [-300, 300], [-25, 25])
   const opacity = useTransform(x, [-400, -200, 0, 200, 400], [0, 1, 1, 1, 0])
   const flying = useRef(false)
 
   const nextLabel = useTransform(x, v => v < -40 ? 1 : 0)
   const prevLabel = useTransform(x, v => v > 40 ? 1 : 0)
+
+  useImperativeHandle(ref, () => ({
+    flyOut(direction) {
+      if (flying.current) return
+      flying.current = true
+      const flyTo = direction === 'right' ? 500 : -500
+      animate(x, flyTo, { duration: 0.3, ease: 'easeOut' }).then(() => {
+        onSwipe(direction)
+      })
+    }
+  }))
 
   const bind = useDrag(({ down, movement: [mx], velocity: [vx], canceled }) => {
     if (flying.current) return
@@ -54,13 +65,14 @@ function SwipeCard({ option, visualization, onSwipe, x }) {
       </motion.div>
     </motion.div>
   )
-}
+})
 
 export default function SuggestionSlider({ options, visualizations }) {
   const total = options.length
   const [index, setIndex] = useState(0)
   const [behindIndex, setBehindIndex] = useState(1 % total)
   const x = useMotionValue(0)
+  const cardRef = useRef(null)
 
   useMotionValueEvent(x, 'change', val => {
     const next = val < 0
@@ -79,21 +91,13 @@ export default function SuggestionSlider({ options, visualizations }) {
   }
 
   function goNext() {
-    x.set(0)
-    setIndex(i => {
-      const next = (i + 1) % total
-      setBehindIndex((next + 1) % total)
-      return next
-    })
+    setBehindIndex(i => (index + 1) % total)
+    cardRef.current?.flyOut('left')
   }
 
   function goPrev() {
-    x.set(0)
-    setIndex(i => {
-      const next = (i - 1 + total) % total
-      setBehindIndex((next + 1) % total)
-      return next
-    })
+    setBehindIndex(i => (index - 1 + total) % total)
+    cardRef.current?.flyOut('right')
   }
 
   return (
@@ -120,6 +124,7 @@ export default function SuggestionSlider({ options, visualizations }) {
 
         {/* Top draggable card */}
         <SwipeCard
+          ref={cardRef}
           key={index}
           option={options[index]}
           visualization={visualizations[index]}
