@@ -3,6 +3,7 @@ import { getWishResult, clearWishResult } from '../store/wishResult.js'
 import OriginalWishCard from '../components/OriginalWishCard.jsx'
 import CoreIntentionsChips from '../components/CoreIntentionsChips.jsx'
 import SuggestionSlider from '../components/SuggestionSlider.jsx'
+import HowToUse from '../components/HowToUse.jsx'
 
 export default function ResultPage() {
   const navigate = useNavigate()
@@ -17,7 +18,7 @@ export default function ResultPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-violet-50 to-stone-50 flex flex-col items-center px-4 py-16 gap-10">
+    <main className="min-h-screen bg-gradient-to-br from-violet-50 to-stone-50 flex flex-col items-center px-4 py-16 gap-6">
       <div className="text-center max-w-lg">
         <h1 className="text-3xl font-semibold text-stone-800 mb-1">Your Kriyashakti</h1>
         <p className="text-stone-400 text-sm">
@@ -29,9 +30,8 @@ export default function ResultPage() {
 
       {isSingle ? (
         <>
-          <div className="w-full max-w-2xl bg-violet-50 border border-violet-100 rounded-2xl px-5 py-4 text-sm text-violet-700 leading-relaxed">
-            <p className="font-semibold mb-1">How to use this</p>
-            <p>We've written 5 versions of a Kriyashakti statement — a short phrase you say or write as if your wish has already come true. Browse through them and pick the one that feels most natural to you, then use the visualization to picture it clearly in your mind.</p>
+          <div className="w-full max-w-2xl">
+            <HowToUse />
           </div>
           <div className="w-full max-w-2xl">
             <SuggestionSlider options={result.data[0].options} visualizations={result.data[0].visualizations} />
