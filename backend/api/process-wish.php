@@ -41,6 +41,9 @@ function jsonError(string $message, int $status = 400): void
 
 // Parse request body
 $body = json_decode(file_get_contents('php://input'), true);
+if (json_last_error() !== JSON_ERROR_NONE || !is_array($body)) {
+    jsonError('Invalid request body.');
+}
 $wish = trim($body['wish'] ?? '');
 
 if (!$wish) {
@@ -82,10 +85,9 @@ try {
 
 } catch (RuntimeException $e) {
     $msg = $e->getMessage();
-    // Known user-facing messages pass through; all others become generic
-    $userFacing = ['Please describe a personal goal or desire.', 'Something went wrong. Please try again.'];
-    if (!in_array($msg, $userFacing, true)) {
-        $msg = 'Something went wrong. Please try again.';
+    if ($msg === 'Please describe a personal goal or desire.') {
+        jsonError($msg, 400);
+    } else {
+        jsonError('Something went wrong. Please try again.', 500);
     }
-    jsonError($msg, 400);
 }
