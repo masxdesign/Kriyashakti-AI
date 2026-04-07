@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { getWishResult } from '../store/wishResult.js'
 import SuggestionSlider from '../components/SuggestionSlider.jsx'
+import HowToUse from '../components/HowToUse.jsx'
 
 export default function WishDetailPage() {
   const navigate = useNavigate()
@@ -29,9 +30,8 @@ export default function WishDetailPage() {
         <h1 className="text-xl font-semibold text-stone-800">{item.wish}</h1>
       </div>
 
-      <div className="w-full max-w-2xl bg-violet-50 border border-violet-100 rounded-2xl px-5 py-4 text-sm text-violet-700 leading-relaxed">
-        <p className="font-semibold mb-1">How to use this</p>
-        <p>We've written 5 versions of a Kriyashakti statement — a short phrase you say or write as if your wish has already come true. Browse through them and pick the one that feels most natural to you, then use the visualization to picture it clearly in your mind.</p>
+      <div className="w-full max-w-2xl">
+        <HowToUse />
       </div>
 
       <div className="w-full max-w-2xl">
