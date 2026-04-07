@@ -1,14 +1,10 @@
 import { createRootRoute, createRoute, Outlet } from '@tanstack/react-router'
 import InputPage from './pages/InputPage.jsx'
+import ResultPage from './pages/ResultPage.jsx'
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
 })
-
-// Placeholder component — will be replaced in Task 4
-function ResultPagePlaceholder() {
-  return <div>Result page — coming soon</div>
-}
 
 export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -19,7 +15,7 @@ export const indexRoute = createRoute({
 export const resultRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/result',
-  component: ResultPagePlaceholder,
+  component: ResultPage,
 })
 
 export const routeTree = rootRoute.addChildren([indexRoute, resultRoute])
