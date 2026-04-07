@@ -11,7 +11,7 @@ export async function processWish(wish) {
     body: JSON.stringify({ wish }),
   })
 
-  const json = await response.json()
+  const json = await response.json().catch(() => ({}))
 
   if (!response.ok || json.error) {
     throw new Error(json.error ?? 'Something went wrong. Please try again.')
