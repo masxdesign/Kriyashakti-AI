@@ -16,7 +16,7 @@ export default function SuggestionSlider({ options, visualizations }) {
       <div className="rounded-2xl border border-stone-100 bg-white/90 px-6 py-6 flex flex-col gap-4 min-h-[200px]">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-1">
-            Kriyashakti Statement
+            Version {index + 1} of {total} — pick the one that feels right
           </p>
           <p className="text-stone-800 text-base font-medium leading-snug">
             {options[index]}
@@ -24,7 +24,7 @@ export default function SuggestionSlider({ options, visualizations }) {
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">
-            Visualization
+            Picture this in your mind
           </p>
           <p className="text-stone-600 text-sm leading-relaxed">
             {visualizations[index]}
@@ -40,7 +40,7 @@ export default function SuggestionSlider({ options, visualizations }) {
           ← Prev
         </button>
         <span className="text-xs text-stone-400">
-          {index + 1} / {total}
+          ← swipe to browse →
         </span>
         <button
           onClick={next}

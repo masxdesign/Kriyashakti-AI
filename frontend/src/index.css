@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(20 14.3% 4.1%);
+  --muted-foreground: hsl(25 5.3% 44.7%);
+  --border: hsl(20 5.9% 90%);
+  --ring: hsl(20 14.3% 4.1%);
+  --accent: hsl(60 4.8% 95.9%);
+  --accent-foreground: hsl(24 9.8% 10%);
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+}

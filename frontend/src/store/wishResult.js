@@ -14,3 +14,15 @@ export function getWishResult() {
 export function clearWishResult() {
   _result = null
 }
+
+export function setPendingEdit(wish) {
+  sessionStorage.setItem('pendingEdit', wish)
+}
+
+export function getPendingEdit() {
+  return sessionStorage.getItem('pendingEdit')
+}
+
+export function clearPendingEdit() {
+  sessionStorage.removeItem('pendingEdit')
+}

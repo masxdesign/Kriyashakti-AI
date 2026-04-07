@@ -30,6 +30,7 @@ class OpenRouterClient
             ],
             'response_format' => ['type' => 'json_object'],
             'thinking' => ['type' => 'disabled'],
+            'max_tokens' => 4096,
         ]);
 
         $ch = curl_init($this->baseUrl);
@@ -62,10 +63,18 @@ class OpenRouterClient
             throw new RuntimeException('OpenRouter error: ' . $msg);
         }
 
-        $content = $decoded['choices'][0]['message']['content'] ?? null;
+        $choice = $decoded['choices'][0] ?? null;
+        $content = $choice['message']['content'] ?? null;
+
         if ($content === null) {
             file_put_contents(__DIR__ . '/../../debug.log', date('Y-m-d H:i:s') . "\nHTTP: {$httpCode}\nRESPONSE: " . $response . "\n\n", FILE_APPEND);
             throw new RuntimeException('OpenRouter error: empty response content. HTTP=' . $httpCode);
+        }
+
+        $finishReason = $choice['finish_reason'] ?? null;
+        if ($finishReason === 'length') {
+            file_put_contents(__DIR__ . '/../../debug.log', date('Y-m-d H:i:s') . "\nTRUNCATED: " . $content . "\n\n", FILE_APPEND);
+            throw new RuntimeException('Something went wrong. Please try again.');
         }
 
         // Strip <think>...</think> blocks that some models emit before the JSON
