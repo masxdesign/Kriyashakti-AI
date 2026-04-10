@@ -32,15 +32,7 @@ export default function WishDetailPage() {
 
   return (
     <div className="page-shell">
-      <div className="w-full max-w-2xl">
-        <button
-          type="button"
-          onClick={() => navigate({ to: '/result' })}
-          className="mb-6 text-sm font-medium text-stone-500 hover:text-stone-800 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 rounded-md -ml-1 px-1"
-        >
-          ← Back to overview
-        </button>
-        <p className="text-xs font-medium tracking-[0.12em] text-stone-500 uppercase mb-2">Your intention</p>
+      <div className="w-full max-w-2xl pt-1">
         <h1 className="text-2xl font-semibold tracking-tight text-stone-900 text-balance leading-snug">{item.wish}</h1>
       </div>
 

@@ -34,22 +34,8 @@ export default function ResultPage() {
 
   return (
     <div className="page-shell">
-      <div className="page-heading">
-        <h1 className="page-title">Your Kriyashakti</h1>
-        <p className="page-lead text-sm">
-          {isSingle
-            ? 'Browse the statements below and pick the one that resonates most.'
-            : 'Tap a wish below to open its statements and practice notes.'}
-        </p>
-      </div>
-
-      <OriginalWishCard wish={result.wish} />
-
       {isSingle ? (
         <>
-          <div className="w-full max-w-2xl">
-            <HowToUse />
-          </div>
           <div className="w-full max-w-2xl">
             <SuggestionSlider
               options={result.data[0].options}
@@ -57,11 +43,25 @@ export default function ResultPage() {
               affirmations={result.data[0].affirmations}
               onVisualizationsGenerated={handleVisualizationsGenerated}
               onAffirmationsGenerated={handleAffirmationsGenerated}
+              showPrimaryHeading
             />
           </div>
+          <div className="w-full max-w-2xl">
+            <HowToUse />
+          </div>
+          <OriginalWishCard wish={result.wish} variant="secondary" />
         </>
       ) : (
-        <CoreIntentionsChips wishes={coreWishes} />
+        <>
+          <div className="page-heading w-full max-w-2xl !text-left">
+            <h1 className="page-title !text-left">Your Kriyashakti</h1>
+            <p className="page-lead !mx-0 text-sm !text-left">
+              Tap a wish below to open its statements and practice notes.
+            </p>
+          </div>
+          <OriginalWishCard wish={result.wish} variant="secondary" />
+          <CoreIntentionsChips wishes={coreWishes} />
+        </>
       )}
 
       <button
