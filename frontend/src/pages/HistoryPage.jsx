@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { getAllHistory, deleteFromHistory } from '../store/historyDB.js'
+import { ensureSessionIdForEntry, getAllHistory, deleteFromHistory } from '../store/historyDB.js'
 import { setWishResult } from '../store/wishResult.js'
 
 function timeAgo(ts) {
@@ -26,9 +26,10 @@ export default function HistoryPage() {
     })
   }, [])
 
-  function handleLoad(entry) {
-    setWishResult(entry)
-    navigate({ to: '/result' })
+  async function handleLoad(entry) {
+    const withSession = await ensureSessionIdForEntry(entry)
+    setWishResult(withSession)
+    navigate({ to: '/result/$sessionId', params: { sessionId: withSession.sessionId } })
   }
 
   async function handleDelete(e, id) {

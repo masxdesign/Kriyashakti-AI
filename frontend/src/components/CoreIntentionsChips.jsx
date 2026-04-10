@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 
-export default function CoreIntentionsChips({ wishes }) {
+export default function CoreIntentionsChips({ wishes, sessionId }) {
   const navigate = useNavigate()
   const isSplit = wishes.length > 1
 
@@ -20,7 +20,12 @@ export default function CoreIntentionsChips({ wishes }) {
           <button
             key={i}
             type="button"
-            onClick={() => navigate({ to: '/result/wish/$index', params: { index: String(i) } })}
+            onClick={() =>
+              navigate({
+                to: '/result/$sessionId/wish/$index',
+                params: { sessionId, index: String(i) },
+              })
+            }
             className="rounded-lg bg-primary-muted/90 px-4 py-2 text-sm font-medium text-primary border border-primary/15 hover:bg-primary-muted transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 text-left text-pretty"
           >
             {wish}

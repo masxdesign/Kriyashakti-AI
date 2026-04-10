@@ -5,7 +5,14 @@ import InputPage from './pages/InputPage.jsx'
 import ResultPage from './pages/ResultPage.jsx'
 import WishDetailPage from './pages/WishDetailPage.jsx'
 import HistoryPage from './pages/HistoryPage.jsx'
-import { getWishResult } from './store/wishResult.js'
+import { getHistoryBySessionId } from './store/historyDB.js'
+import { setWishResult } from './store/wishResult.js'
+
+async function loadResultFromSession(params) {
+  const entry = await getHistoryBySessionId(params.sessionId)
+  if (!entry) throw redirect({ to: '/' })
+  setWishResult(entry)
+}
 
 function RootLayout() {
   return (
@@ -38,22 +45,18 @@ export const indexRoute = createRoute({
   component: InputPage,
 })
 
-export const resultRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/result',
-  beforeLoad: () => {
-    if (!getWishResult()) throw redirect({ to: '/' })
-  },
-  component: ResultPage,
-})
-
 export const wishDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/result/wish/$index',
-  beforeLoad: () => {
-    if (!getWishResult()) throw redirect({ to: '/' })
-  },
+  path: '/result/$sessionId/wish/$index',
+  beforeLoad: ({ params }) => loadResultFromSession(params),
   component: WishDetailPage,
+})
+
+export const resultRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/result/$sessionId',
+  beforeLoad: ({ params }) => loadResultFromSession(params),
+  component: ResultPage,
 })
 
 export const historyRoute = createRoute({
@@ -62,4 +65,4 @@ export const historyRoute = createRoute({
   component: HistoryPage,
 })
 
-export const routeTree = rootRoute.addChildren([indexRoute, resultRoute, wishDetailRoute, historyRoute])
+export const routeTree = rootRoute.addChildren([indexRoute, wishDetailRoute, resultRoute, historyRoute])

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { processWish } from '../api/processWish.js'
 import { setWishResult, getPendingEdit, clearPendingEdit } from '../store/wishResult.js'
-import { findInHistory, saveToHistory } from '../store/historyDB.js'
+import { ensureSessionIdForEntry, findInHistory, saveToHistory } from '../store/historyDB.js'
 import WishForm from '../components/WishForm.jsx'
 import LoadingScreen from '../components/LoadingScreen.jsx'
 
@@ -26,15 +26,16 @@ export default function InputPage() {
     try {
       const cached = await findInHistory(wish)
       if (cached) {
-        setWishResult(cached)
-        navigate({ to: '/result' })
+        const entry = await ensureSessionIdForEntry(cached)
+        setWishResult(entry)
+        navigate({ to: '/result/$sessionId', params: { sessionId: entry.sessionId } })
         return
       }
 
       const result = await processWish(wish)
-      const id = await saveToHistory(result)
-      setWishResult({ ...result, id })
-      navigate({ to: '/result' })
+      const { id, sessionId } = await saveToHistory(result)
+      setWishResult({ ...result, id, sessionId })
+      navigate({ to: '/result/$sessionId', params: { sessionId } })
     } catch (err) {
       setError(err.message)
     } finally {

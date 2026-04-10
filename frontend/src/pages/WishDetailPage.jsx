@@ -6,13 +6,13 @@ import { updateVisualizationsInHistory, updateAffirmationsInHistory } from '../s
 
 export default function WishDetailPage() {
   const navigate = useNavigate()
-  const { index } = useParams({ from: '/result/wish/$index' })
+  const { sessionId, index } = useParams({ from: '/result/$sessionId/wish/$index' })
   const result = getWishResult()
   const wishIndex = Number(index)
-  const item = result.data[wishIndex]
+  const item = result?.data?.[wishIndex]
 
   if (!item) {
-    navigate({ to: '/result' })
+    navigate({ to: '/result/$sessionId', params: { sessionId } })
     return null
   }
 

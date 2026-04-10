@@ -60,7 +60,7 @@ export default function ResultPage() {
             </p>
           </div>
           <OriginalWishCard wish={result.wish} variant="secondary" />
-          <CoreIntentionsChips wishes={coreWishes} />
+          <CoreIntentionsChips wishes={coreWishes} sessionId={result.sessionId} />
         </>
       )}
 

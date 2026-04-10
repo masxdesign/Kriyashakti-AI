@@ -8,6 +8,10 @@ const EXAMPLES = [
   'I want to grow my career and earn what I truly deserve',
 ]
 
+function normalizeWish(text) {
+  return text.trim().replace(/^[.\s]+|[.\s]+$/g, '').trim()
+}
+
 export default function WishForm({ onSubmit, isLoading, initialValue = '' }) {
   const [value, setValue] = useState(initialValue)
   const [touched, setTouched] = useState(false)
@@ -18,7 +22,15 @@ export default function WishForm({ onSubmit, isLoading, initialValue = '' }) {
   function handleSubmit(e) {
     e.preventDefault()
     setTouched(true)
-    if (!isEmpty) onSubmit(value.trim().replace(/^[.\s]+|[.\s]+$/g, '').trim())
+    const normalized = normalizeWish(value)
+    if (normalized) onSubmit(normalized)
+  }
+
+  function submitExample(example) {
+    const normalized = normalizeWish(example)
+    if (!normalized || isLoading) return
+    setValue(example)
+    onSubmit(normalized)
   }
 
   return (
@@ -43,7 +55,7 @@ export default function WishForm({ onSubmit, isLoading, initialValue = '' }) {
               key={example}
               type="button"
               disabled={isLoading}
-              onClick={() => setValue(example)}
+              onClick={() => submitExample(example)}
               className="rounded-lg border border-stone-200/90 bg-white/70 px-3 py-1.5 text-xs font-medium text-stone-600 hover:border-primary/35 hover:text-primary hover:bg-primary-muted/50 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 text-left text-pretty max-w-full"
             >
               {example}

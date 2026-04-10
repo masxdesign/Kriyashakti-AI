@@ -9,10 +9,10 @@ export function usePrimaryNavActive() {
   return { pathname, homeActive, historyActive }
 }
 
-/** When on /result/wish/:index, return title for top bar; otherwise null. */
+/** When on /result/:sessionId/wish/:index, return title for top bar; otherwise null. */
 export function useWishDetailHeaderMeta() {
   const pathname = useRouterState({ select: s => s.location.pathname })
-  const m = pathname.match(/\/result\/wish\/(\d+)$/)
+  const m = pathname.match(/\/result\/[^/]+\/wish\/(\d+)$/)
   if (!m) return null
   const idx = Number(m[1])
   const result = getWishResult()
@@ -21,11 +21,11 @@ export function useWishDetailHeaderMeta() {
   return { title: item.wish, index: idx }
 }
 
-/** Main results page /result — show back + centered context (not /result/wish/…). */
+/** Multi-wish overview /result/:sessionId — show back + centered context (not …/wish/…). */
 export function useResultOverviewHeaderMeta() {
   const pathname = useRouterState({ select: s => s.location.pathname })
   const base = pathname.replace(/\/$/, '') || '/'
-  if (base !== '/result') return null
+  if (!/^\/result\/[^/]+$/.test(base)) return null
   const result = getWishResult()
   if (!result) return null
   const raw = (result.wish ?? '').trim()

@@ -1,5 +1,4 @@
-// Simple module-level store for passing the wish result between InputPage and ResultPage.
-// This is intentionally ephemeral — data is gone on page refresh, which is correct for a stateless prototype.
+// Module-level store for the current wish result. On refresh, /result/:sessionId reloads from IndexedDB.
 
 let _result = null
 

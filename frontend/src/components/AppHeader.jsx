@@ -1,5 +1,6 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { usePrimaryNavActive, useWishDetailHeaderMeta, useResultOverviewHeaderMeta } from '@/lib/navState.js'
+import { getWishResult } from '@/store/wishResult.js'
 
 function ChevronLeft({ className }) {
   return (
@@ -29,7 +30,11 @@ export default function AppHeader() {
           <>
             <button
               type="button"
-              onClick={() => navigate({ to: '/result' })}
+              onClick={() => {
+                const sid = getWishResult()?.sessionId
+                if (sid) navigate({ to: '/result/$sessionId', params: { sessionId: sid } })
+                else navigate({ to: '/' })
+              }}
               className="absolute left-2 top-1/2 z-10 flex -translate-y-1/2 items-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-sm font-semibold text-primary transition-colors duration-200 hover:opacity-85 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:left-3"
               aria-label="Back to overview"
             >
