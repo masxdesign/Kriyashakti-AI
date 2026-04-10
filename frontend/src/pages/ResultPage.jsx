@@ -33,21 +33,9 @@ export default function ResultPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-violet-50 to-stone-50 flex flex-col items-center px-4 py-16 gap-6">
-      <div className="text-center max-w-lg">
-        <h1 className="text-3xl font-semibold text-stone-800 mb-1">Your Kriyashakti</h1>
-        <p className="text-stone-400 text-sm">
-          {isSingle ? 'Browse the statements below and pick the one that resonates most.' : 'Tap a wish below to get your Kriyashakti statements.'}
-        </p>
-      </div>
-
-      <OriginalWishCard wish={result.wish} />
-
+    <div className="page-shell">
       {isSingle ? (
         <>
-          <div className="w-full max-w-2xl">
-            <HowToUse />
-          </div>
           <div className="w-full max-w-2xl">
             <SuggestionSlider
               options={result.data[0].options}
@@ -55,19 +43,34 @@ export default function ResultPage() {
               affirmations={result.data[0].affirmations}
               onVisualizationsGenerated={handleVisualizationsGenerated}
               onAffirmationsGenerated={handleAffirmationsGenerated}
+              showPrimaryHeading
             />
           </div>
+          <div className="w-full max-w-2xl">
+            <HowToUse />
+          </div>
+          <OriginalWishCard wish={result.wish} variant="secondary" />
         </>
       ) : (
-        <CoreIntentionsChips wishes={coreWishes} />
+        <>
+          <div className="page-heading w-full max-w-2xl !text-left">
+            <h1 className="page-title !text-left">Your Kriyashakti</h1>
+            <p className="page-lead !mx-0 text-sm !text-left">
+              Tap a wish below to open its statements and practice notes.
+            </p>
+          </div>
+          <OriginalWishCard wish={result.wish} variant="secondary" />
+          <CoreIntentionsChips wishes={coreWishes} sessionId={result.sessionId} />
+        </>
       )}
 
       <button
+        type="button"
         onClick={handleStartOver}
-        className="rounded-full border border-stone-200 px-6 py-2.5 text-sm text-stone-500 hover:bg-stone-100 transition-colors"
+        className="rounded-full border border-stone-200/90 bg-white/60 px-6 py-2.5 text-sm font-medium text-stone-600 shadow-sm shadow-stone-900/5 transition-all duration-200 hover:bg-stone-50 hover:border-stone-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2"
       >
         Start over
       </button>
-    </main>
+    </div>
   )
 }

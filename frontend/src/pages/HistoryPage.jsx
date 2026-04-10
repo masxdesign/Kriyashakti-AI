@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { getAllHistory, deleteFromHistory } from '../store/historyDB.js'
+import { ensureSessionIdForEntry, getAllHistory, deleteFromHistory } from '../store/historyDB.js'
 import { setWishResult } from '../store/wishResult.js'
 
 function timeAgo(ts) {
@@ -26,9 +26,10 @@ export default function HistoryPage() {
     })
   }, [])
 
-  function handleLoad(entry) {
-    setWishResult(entry)
-    navigate({ to: '/result' })
+  async function handleLoad(entry) {
+    const withSession = await ensureSessionIdForEntry(entry)
+    setWishResult(withSession)
+    navigate({ to: '/result/$sessionId', params: { sessionId: withSession.sessionId } })
   }
 
   async function handleDelete(e, id) {
@@ -38,49 +39,59 @@ export default function HistoryPage() {
   }
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-violet-50 to-stone-50 flex flex-col items-center px-4 py-16 gap-8">
-      <div className="w-full max-w-2xl flex items-center gap-3">
-        <button
-          onClick={() => navigate({ to: '/' })}
-          className="text-sm text-stone-400 hover:text-stone-600 transition-colors"
-        >
-          ← Back
-        </button>
-      </div>
-
+    <div className="page-shell">
       <div className="w-full max-w-2xl">
-        <h1 className="text-2xl font-semibold text-stone-800 mb-1">History</h1>
-        <p className="text-stone-400 text-sm">Tap any entry to load it.</p>
+        <h1 className="page-title text-left">History</h1>
+        <p className="page-lead text-left mx-0 mt-2 text-sm">Open any entry to continue where you left off.</p>
       </div>
 
       {loading && (
-        <p className="text-stone-400 text-sm">Loading…</p>
+        <div className="flex flex-col gap-3 w-full max-w-2xl" aria-busy="true" aria-label="Loading history">
+          {[1, 2, 3].map(i => (
+            <div
+              key={i}
+              className="h-[5.5rem] rounded-2xl bg-stone-200/60 animate-pulse"
+            />
+          ))}
+        </div>
       )}
 
       {!loading && entries.length === 0 && (
-        <div className="w-full max-w-2xl text-center py-16 text-stone-400 text-sm">
-          No history yet. Shape your first wish to get started.
+        <div className="w-full max-w-2xl rounded-2xl border border-dashed border-stone-200 bg-white/50 px-6 py-14 text-center">
+          <p className="text-stone-600 text-sm font-medium mb-1">Nothing saved yet</p>
+          <p className="text-stone-500 text-sm leading-relaxed max-w-sm mx-auto">
+            Shape a wish on the home screen. It will show up here so you can return anytime.
+          </p>
         </div>
       )}
 
       {!loading && entries.length > 0 && (
-        <ul className="w-full max-w-2xl flex flex-col gap-3">
+        <ul className="w-full max-w-2xl flex flex-col gap-3 list-none p-0 m-0">
           {entries.map(entry => (
             <li
               key={entry.id}
+              role="button"
+              aria-label={`Open wish from ${timeAgo(entry.createdAt)}`}
               onClick={() => handleLoad(entry)}
-              className="rounded-2xl border border-stone-100 bg-white/80 px-5 py-4 cursor-pointer hover:border-violet-200 hover:bg-violet-50/50 transition-colors group"
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  handleLoad(entry)
+                }
+              }}
+              tabIndex={0}
+              className="rounded-2xl border border-stone-100 bg-white/85 px-5 py-4 cursor-pointer shadow-sm shadow-stone-900/5 transition-all duration-200 hover:border-primary/25 hover:shadow-md hover:shadow-stone-900/8 active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 group list-none"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-stone-700 text-sm font-medium leading-snug line-clamp-2 italic">
-                    "{entry.wish}"
+                  <p className="text-stone-800 text-sm font-medium leading-snug line-clamp-2 italic text-pretty">
+                    &ldquo;{entry.wish}&rdquo;
                   </p>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
+                  <div className="flex flex-wrap gap-1.5 mt-2.5">
                     {entry.data.map((item, i) => (
                       <span
                         key={i}
-                        className="rounded-full bg-violet-100 px-3 py-0.5 text-xs text-violet-600"
+                        className="rounded-md bg-primary-muted/80 px-2.5 py-0.5 text-xs font-medium text-primary"
                       >
                         {item.wish}
                       </span>
@@ -88,10 +99,11 @@ export default function HistoryPage() {
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2 shrink-0">
-                  <span className="text-xs text-stone-400">{timeAgo(entry.createdAt)}</span>
+                  <span className="text-xs text-stone-400 tabular-nums">{timeAgo(entry.createdAt)}</span>
                   <button
+                    type="button"
                     onClick={e => handleDelete(e, entry.id)}
-                    className="text-xs text-stone-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                    className="text-xs text-stone-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
                   >
                     Delete
                   </button>
@@ -101,6 +113,6 @@ export default function HistoryPage() {
           ))}
         </ul>
       )}
-    </main>
+    </div>
   )
 }

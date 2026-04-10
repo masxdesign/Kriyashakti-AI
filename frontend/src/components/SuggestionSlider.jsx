@@ -1,138 +1,295 @@
-import { useState, useRef, forwardRef, useImperativeHandle } from 'react'
-import { motion, useMotionValue, useTransform, useMotionValueEvent, animate } from 'motion/react'
+import { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react'
+import { motion, useMotionValue, useTransform, useMotionValueEvent, animate, useReducedMotion } from 'motion/react'
 import { useDrag } from '@use-gesture/react'
 import { generateVisualization, generateAffirmation } from '../api/processWish.js'
+import { cn } from '@/lib/utils'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from '@/components/ui/drawer'
+
+function IconChevronsLeft({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+    </svg>
+  )
+}
+
+/** Quiet cue — icon + text share one vertical center; shimmer only on lead words */
+function SwipeHint() {
+  const reduceMotion = useReducedMotion()
+
+  return (
+    <div className="mb-3 flex max-w-xl items-center gap-0" role="status">
+      <div
+        className="pointer-events-none h-5 w-px shrink-0 rounded-full bg-gradient-to-b from-stone-200/0 via-stone-400/35 to-stone-200/0"
+        aria-hidden
+      />
+      <div className="flex min-w-0 flex-1 items-center gap-2.5 pl-3.5">
+        <motion.span
+          className="inline-flex shrink-0 items-center justify-center text-primary/45"
+          animate={reduceMotion ? false : { x: [0, -3, 0] }}
+          transition={{ duration: 2.75, repeat: Infinity, ease: [0.4, 0, 0.2, 1] }}
+          aria-hidden
+        >
+          <IconChevronsLeft className="h-[1.0625rem] w-[1.0625rem]" />
+        </motion.span>
+        <p className="min-w-0 text-[13px] leading-5 tracking-[-0.01em] sm:text-[0.8125rem]">
+          <span className="swipe-hint__shine">Swipe left</span>
+          <span className="font-normal text-stone-500"> for the next line.</span>
+        </p>
+      </div>
+    </div>
+  )
+}
 
 const SwipeCard = forwardRef(function SwipeCard({
   option, visualization, vizState, onGenerateViz,
   affirmation, affState, onGenerateAff,
-  onSwipe, x
+  onSwipe, x, className,
 }, ref) {
-  const rotate = useTransform(x, [-300, 300], [-25, 25])
-  const opacity = useTransform(x, [-400, -200, 0, 200, 400], [0, 1, 1, 1, 0])
-  const flying = useRef(false)
+  const [dialogOpen, setDialogOpen] = useState(null)
 
-  const nextLabel = useTransform(x, v => v < -40 ? 1 : 0)
-  const prevLabel = useTransform(x, v => v > 40 ? 1 : 0)
+  const rotate = useTransform(x, [-280, 0], [-20, 0])
+  const flying = useRef(false)
+  /** Stops mid-flight animations so x never freezes; pointer loss no longer leaves flying=true. */
+  const cardAnimRef = useRef(null)
+
+  const nextLabel = useTransform(x, v => v < -36 ? 1 : 0)
+
+  function stopCardAnim() {
+    cardAnimRef.current?.stop?.()
+    cardAnimRef.current = null
+    flying.current = false
+  }
+
+  useEffect(() => {
+    setDialogOpen(null)
+    stopCardAnim()
+    x.set(0)
+  }, [option])
 
   useImperativeHandle(ref, () => ({
     flyOut(direction) {
       if (flying.current) return
+      stopCardAnim()
       flying.current = true
       const flyTo = direction === 'right' ? 500 : -500
-      animate(x, flyTo, { duration: 0.3, ease: 'easeOut' }).then(() => {
-        onSwipe(direction)
-      })
-    }
+      const anim = animate(x, flyTo, { duration: 0.3, ease: 'easeOut' })
+      cardAnimRef.current = anim
+      anim
+        .then(() => {
+          onSwipe(direction)
+        })
+        .finally(() => {
+          flying.current = false
+          if (cardAnimRef.current === anim) cardAnimRef.current = null
+        })
+    },
   }))
 
   const bind = useDrag(({ down, movement: [mx], velocity: [vx], canceled, event, cancel }) => {
-    if (flying.current) return
-
-    if (event?.target?.closest('button')) {
+    if (event?.target?.closest('button, a, [data-no-drag]')) {
       cancel()
       return
     }
 
-    if (down) {
-      x.set(mx)
-      return
-    }
-
     if (canceled) {
-      animate(x, 0, { type: 'spring', stiffness: 300, damping: 20 })
+      stopCardAnim()
+      const anim = animate(x, 0, { type: 'spring', stiffness: 300, damping: 20 })
+      cardAnimRef.current = anim
+      anim.finally(() => {
+        if (cardAnimRef.current === anim) cardAnimRef.current = null
+      })
       return
     }
 
-    const shouldFly = Math.abs(mx) > 100 || Math.abs(vx) > 0.5
-    if (shouldFly) {
-      flying.current = true
-      const flyTo = mx > 0 ? 500 : -500
-      animate(x, flyTo, { duration: 0.3, ease: 'easeOut' }).then(() => {
-        onSwipe(mx > 0 ? 'right' : 'left')
-      })
-    } else {
-      animate(x, 0, { type: 'spring', stiffness: 300, damping: 20 })
+    if (flying.current && !down) return
+
+    if (down) {
+      stopCardAnim()
+      x.set(Math.min(0, mx))
+      return
     }
-  }, { filterTaps: true, pointer: { capture: false } })
+
+    const shouldFlyLeft = mx < -100 || (vx < -0.45 && mx < -24)
+    if (shouldFlyLeft) {
+      flying.current = true
+      const anim = animate(x, -500, { duration: 0.3, ease: 'easeOut' })
+      cardAnimRef.current = anim
+      anim
+        .then(() => {
+          onSwipe('left')
+        })
+        .finally(() => {
+          flying.current = false
+          if (cardAnimRef.current === anim) cardAnimRef.current = null
+        })
+    } else {
+      const anim = animate(x, 0, { type: 'spring', stiffness: 300, damping: 20 })
+      cardAnimRef.current = anim
+      anim.finally(() => {
+        if (cardAnimRef.current === anim) cardAnimRef.current = null
+      })
+    }
+  }, { filterTaps: true, pointer: { capture: true } })
 
   return (
     <motion.div
       {...bind()}
-      style={{ x, rotate, opacity, touchAction: 'none' }}
-      className="absolute inset-0 rounded-2xl border border-stone-100 bg-white px-6 py-6 flex flex-col gap-4 cursor-grab active:cursor-grabbing overflow-hidden"
+      initial={false}
+      layout={false}
+      style={{ x, rotate, touchAction: 'none' }}
+      className={cn(
+        'relative z-10 w-full cursor-grab active:cursor-grabbing',
+        className,
+      )}
     >
-      <div className="flex flex-col gap-4 overflow-y-auto flex-1 pr-1">
-        <p className="text-stone-800 text-base font-medium leading-snug">{option}</p>
+      <div className="flex flex-col rounded-2xl border border-stone-100/90 bg-white/95 px-6 py-6 shadow-sm shadow-stone-900/5">
+        <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-1">{option}</p>
 
-        {/* Visualization section */}
-        <div>
-          {visualization ? (
-            <>
-              <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Picture this in your mind</p>
-              <p className="text-stone-600 text-sm leading-relaxed">{visualization}</p>
-            </>
-          ) : vizState === 'loading' ? (
-            <Skeleton />
-          ) : vizState === 'error' ? (
-            <button onClick={onGenerateViz} className="text-xs text-red-400 hover:text-red-600 transition-colors text-left">
-              Failed to generate. Try again →
-            </button>
-          ) : (
-            <button onClick={onGenerateViz} className="mt-1 rounded-full border border-violet-200 px-4 py-1.5 text-xs text-violet-500 hover:bg-violet-50 transition-colors">
-              Generate visualization
-            </button>
-          )}
-        </div>
+          <div
+            data-no-drag
+            className={cn(
+              'mt-5 flex min-h-8 flex-nowrap items-center gap-x-3 border-t border-stone-100/90 pt-4 sm:gap-x-4',
+              visualization ? 'justify-between' : 'justify-start',
+            )}
+          >
+            <div className="flex h-8 min-w-0 items-center">
+              {vizState === 'loading' ? (
+                <span className="inline-flex h-8 items-center text-xs text-stone-500">Shaping visualization…</span>
+              ) : vizState === 'error' ? (
+                <button
+                  type="button"
+                  onClick={onGenerateViz}
+                  className="inline-flex h-8 max-w-full items-center truncate text-xs text-red-600 hover:text-red-800 underline-offset-2 hover:underline transition-colors"
+                >
+                  Could not generate. Try again
+                </button>
+              ) : visualization ? (
+                <button
+                  type="button"
+                  onClick={() => setDialogOpen('viz')}
+                  className="inline-flex h-8 max-w-full items-center truncate rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+                >
+                  View visualization
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onGenerateViz}
+                  className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+                >
+                  Generate visualization
+                </button>
+              )}
+            </div>
 
-        {/* Affirmation section — only visible after visualization is done */}
-        {visualization && (
-          <div>
-            {affirmation ? (
+            {visualization && (
               <>
-                <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Your affirmation</p>
-                <div className="flex flex-col gap-0.5">
-                  {affirmation.split('\n').map((line, i) => (
-                    <p key={i} className="text-stone-600 text-sm leading-relaxed italic">{line}</p>
-                  ))}
+                <span className="h-4 w-px shrink-0 bg-stone-200/90" aria-hidden />
+                <div className="flex h-8 min-w-0 items-center">
+                  {affState === 'loading' ? (
+                    <span className="inline-flex h-8 items-center text-xs text-stone-500">Shaping affirmation…</span>
+                  ) : affState === 'error' ? (
+                    <button
+                      type="button"
+                      onClick={onGenerateAff}
+                      className="inline-flex h-8 max-w-full items-center truncate text-xs text-red-600 hover:text-red-800 underline-offset-2 hover:underline transition-colors"
+                    >
+                      Could not generate. Try again
+                    </button>
+                  ) : affirmation ? (
+                    <button
+                      type="button"
+                      onClick={() => setDialogOpen('aff')}
+                      className="inline-flex h-8 max-w-full items-center truncate rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+                    >
+                      View affirmation
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={onGenerateAff}
+                      className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+                    >
+                      Generate affirmation
+                    </button>
+                  )}
                 </div>
               </>
-            ) : affState === 'loading' ? (
-              <Skeleton />
-            ) : affState === 'error' ? (
-              <button onClick={onGenerateAff} className="text-xs text-red-400 hover:text-red-600 transition-colors text-left">
-                Failed to generate. Try again →
-              </button>
-            ) : (
-              <button onClick={onGenerateAff} className="rounded-full border border-amber-200 px-4 py-1.5 text-xs text-amber-600 hover:bg-amber-50 transition-colors">
-                Generate affirmation
-              </button>
             )}
           </div>
-        )}
       </div>
 
-      <motion.div style={{ opacity: nextLabel }} className="absolute right-4 top-4 rounded-full bg-stone-100 px-3 py-1 text-xs text-stone-400 pointer-events-none">
-        next →
-      </motion.div>
-      <motion.div style={{ opacity: prevLabel }} className="absolute left-4 top-4 rounded-full bg-stone-100 px-3 py-1 text-xs text-stone-400 pointer-events-none">
-        ← prev
+      <Drawer open={dialogOpen !== null} onOpenChange={open => !open && setDialogOpen(null)}>
+        <DrawerContent className="p-0">
+          <DrawerHeader className="border-b border-stone-100/80 px-6 pb-3 pr-14 pt-1">
+            <DrawerTitle className="text-base font-semibold tracking-tight text-stone-900">
+              {dialogOpen === 'viz' ? 'Visualization' : 'Affirmation'}
+            </DrawerTitle>
+            <DrawerDescription className="sr-only">
+              {dialogOpen === 'viz'
+                ? 'Mental picture for your practice, with your Kriyashakti line as context.'
+                : 'Affirmation lines for your practice, with your Kriyashakti line as context.'}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="flex flex-col gap-8 px-6 pb-8 pt-6">
+              {dialogOpen === 'viz' && visualization && (
+                <div className="text-pretty">
+                  <p className="text-[1.0625rem] sm:text-lg font-normal leading-[1.65] tracking-[-0.02em] text-stone-900">
+                    {visualization}
+                  </p>
+                </div>
+              )}
+              {dialogOpen === 'aff' && affirmation && (
+                <div className="flex flex-col gap-5 text-pretty">
+                  {affirmation.split('\n').map((line, i) => (
+                    <p
+                      key={i}
+                      className="text-[1.0625rem] sm:text-lg font-normal leading-[1.65] tracking-[-0.015em] text-stone-800 italic"
+                    >
+                      {line}
+                    </p>
+                  ))}
+                </div>
+              )}
+
+              <div className="border-t border-stone-200/90 pt-6">
+                <div className="flex gap-3.5">
+                  <div className="mt-0.5 w-1 shrink-0 self-stretch min-h-[2.75rem] rounded-full bg-primary/25" aria-hidden />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/70">Kriyashakti</p>
+                    <p className="mt-2 text-sm font-medium leading-relaxed text-stone-500">{option}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      <motion.div style={{ opacity: nextLabel }} className="absolute right-4 top-4 rounded-md bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary pointer-events-none">
+        Next →
       </motion.div>
     </motion.div>
   )
 })
 
-function Skeleton() {
-  return (
-    <div className="flex flex-col gap-2 mt-1">
-      <div className="h-3 bg-stone-100 rounded-full animate-pulse w-full" />
-      <div className="h-3 bg-stone-100 rounded-full animate-pulse w-5/6" />
-      <div className="h-3 bg-stone-100 rounded-full animate-pulse w-4/6" />
-    </div>
-  )
-}
-
-export default function SuggestionSlider({ options, visualizations: initialVisualizations, affirmations: initialAffirmations, onVisualizationsGenerated, onAffirmationsGenerated }) {
+export default function SuggestionSlider({
+  options,
+  visualizations: initialVisualizations,
+  affirmations: initialAffirmations,
+  onVisualizationsGenerated,
+  onAffirmationsGenerated,
+  /** When true, this block is the page hero (Result page). */
+  showPrimaryHeading = false,
+}) {
   const total = options.length
   const [index, setIndex] = useState(0)
   const [behindIndex, setBehindIndex] = useState(1 % total)
@@ -152,10 +309,20 @@ export default function SuggestionSlider({ options, visualizations: initialVisua
 
   const x = useMotionValue(0)
   const cardRef = useRef(null)
+  const indexRef = useRef(index)
+  indexRef.current = index
 
+  /** Only when drag first crosses into negative x — avoids setState every frame and swipe flicker. */
+  const peekingLeftRef = useRef(false)
   useMotionValueEvent(x, 'change', val => {
-    const next = val < 0 ? (index + 1) % total : (index - 1 + total) % total
-    setBehindIndex(next)
+    if (val < 0) {
+      if (!peekingLeftRef.current) {
+        peekingLeftRef.current = true
+        setBehindIndex((indexRef.current + 1) % total)
+      }
+    } else {
+      peekingLeftRef.current = false
+    }
   })
 
   function handleSwipe(direction) {
@@ -209,52 +376,45 @@ export default function SuggestionSlider({ options, visualizations: initialVisua
     }
   }
 
-  const behindViz = visualizations[behindIndex]
-  const behindVizState = vizStates[behindIndex]
-  const behindAff = affirmations[behindIndex]
-
   return (
     <div className="w-full">
-      <p className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-3">
-        Version {index + 1} of {total} — pick the one that feels right
-      </p>
+      {showPrimaryHeading ? (
+        <header className="mb-5 text-left">
+          <h1 className="text-2xl font-bold tracking-tight text-stone-900 text-balance text-pretty sm:text-[1.75rem]">
+            Pick what feels right
+          </h1>
+          <p className="mt-2 text-sm font-medium text-stone-500">
+            Statement {index + 1} of {total}
+          </p>
+        </header>
+      ) : (
+        <p className="text-xs font-medium tracking-[0.08em] text-primary/80 uppercase mb-3">
+          Version {index + 1} of {total} — pick what feels right
+        </p>
+      )}
 
-      <div className="relative h-[340px] select-none">
-        {/* Card behind */}
+      {total > 1 && <SwipeHint />}
+
+      <div className="relative grid grid-cols-1 grid-rows-1 place-items-start select-none">
+        {/* Card behind — same grid cell; row height = max(front, back) */}
         <motion.div
-          className="absolute inset-0 rounded-2xl border border-stone-100 bg-white px-6 py-6 flex flex-col gap-4 overflow-hidden"
+          className="col-start-1 row-start-1 w-full max-w-full rounded-2xl border border-stone-100/90 bg-white/90 px-6 py-6 flex flex-col overflow-hidden shadow-sm shadow-stone-900/5 z-0"
           style={{
-            scale: useTransform(x, [-300, -60, 0, 60, 300], [1, 1, 0.97, 1, 1]),
+            scale: useTransform(x, [-300, 0], [0.97, 1]),
             transformOrigin: 'bottom',
           }}
         >
-          <div className="flex flex-col gap-4 overflow-hidden flex-1">
-            <p className="text-stone-800 text-base font-medium leading-snug">{options[behindIndex]}</p>
-            {behindViz ? (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Picture this in your mind</p>
-                <p className="text-stone-600 text-sm leading-relaxed">{behindViz}</p>
-              </div>
-            ) : behindVizState === 'loading' ? (
-              <Skeleton />
-            ) : null}
-            {behindViz && behindAff && (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Your affirmation</p>
-                <div className="flex flex-col gap-0.5">
-                  {behindAff.split('\n').map((line, i) => (
-                    <p key={i} className="text-stone-600 text-sm leading-relaxed italic">{line}</p>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty">{options[behindIndex]}</p>
+          <div
+            className="mt-5 flex min-h-8 flex-nowrap items-center gap-x-3 border-t border-transparent pt-4 sm:gap-x-4"
+            aria-hidden
+          />
         </motion.div>
 
         {/* Top draggable card */}
         <SwipeCard
           ref={cardRef}
-          key={index}
+          className="col-start-1 row-start-1"
           option={options[index]}
           visualization={visualizations[index]}
           vizState={vizStates[index]}
@@ -269,22 +429,25 @@ export default function SuggestionSlider({ options, visualizations: initialVisua
 
       <div className="flex items-center justify-between mt-4 px-1">
         <button
+          type="button"
           onClick={goPrev}
-          className="rounded-full px-4 py-1.5 text-sm text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-colors"
+          className="rounded-full px-4 py-1.5 text-sm font-medium text-stone-500 hover:text-stone-900 hover:bg-stone-100/90 transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+          title="Go to previous statement"
         >
-          ← Prev
+          Previous
         </button>
         <div className="flex gap-1.5 items-center">
           {options.map((_, i) => (
             <span
               key={i}
-              className={`rounded-full transition-all duration-200 ${i === index ? 'w-4 h-1.5 bg-violet-400' : 'w-1.5 h-1.5 bg-stone-200'}`}
+              className={`rounded-full transition-all duration-200 ${i === index ? 'w-4 h-1.5 bg-primary' : 'w-1.5 h-1.5 bg-stone-200'}`}
             />
           ))}
         </div>
         <button
+          type="button"
           onClick={goNext}
-          className="rounded-full px-4 py-1.5 text-sm text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-colors"
+          className="rounded-full px-4 py-1.5 text-sm font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-100/90 transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
         >
           Next →
         </button>

@@ -8,6 +8,10 @@ const EXAMPLES = [
   'I want to grow my career and earn what I truly deserve',
 ]
 
+function normalizeWish(text) {
+  return text.trim().replace(/^[.\s]+|[.\s]+$/g, '').trim()
+}
+
 export default function WishForm({ onSubmit, isLoading, initialValue = '' }) {
   const [value, setValue] = useState(initialValue)
   const [touched, setTouched] = useState(false)
@@ -18,11 +22,19 @@ export default function WishForm({ onSubmit, isLoading, initialValue = '' }) {
   function handleSubmit(e) {
     e.preventDefault()
     setTouched(true)
-    if (!isEmpty) onSubmit(value.trim().replace(/^[.\s]+|[.\s]+$/g, '').trim())
+    const normalized = normalizeWish(value)
+    if (normalized) onSubmit(normalized)
+  }
+
+  function submitExample(example) {
+    const normalized = normalizeWish(example)
+    if (!normalized || isLoading) return
+    setValue(example)
+    onSubmit(normalized)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xl">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full max-w-xl">
       <textarea
         value={value}
         onChange={e => setValue(e.target.value)}
@@ -30,28 +42,31 @@ export default function WishForm({ onSubmit, isLoading, initialValue = '' }) {
         rows={6}
         disabled={isLoading}
         placeholder="Write your wish however it comes to you…"
-        className={`w-full rounded-2xl border bg-white/70 p-4 text-base text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-violet-300 resize-none disabled:opacity-50 ${showError ? 'border-red-400' : 'border-stone-200'}`}
+        className={`w-full max-w-prose mx-auto rounded-2xl border bg-white/90 p-4 text-base text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/35 resize-none transition-shadow duration-200 disabled:opacity-50 ${showError ? 'border-red-400/90' : 'border-stone-200/90'}`}
       />
       {showError && (
-        <p className="text-sm text-red-500 -mt-2">Please write your wish before continuing.</p>
+        <p className="text-sm text-red-700 -mt-1 text-center">Write your wish before continuing.</p>
       )}
-      <div className="flex flex-wrap gap-2">
-        {EXAMPLES.map(example => (
-          <button
-            key={example}
-            type="button"
-            disabled={isLoading}
-            onClick={() => setValue(example)}
-            className="rounded-full border border-stone-200 bg-white/60 px-3 py-1.5 text-xs text-stone-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50/60 transition-colors disabled:opacity-50"
-          >
-            {example}
-          </button>
-        ))}
+      <div>
+        <p className="text-xs font-medium text-stone-500 mb-2">Try a starting line</p>
+        <div className="flex flex-wrap gap-2">
+          {EXAMPLES.map(example => (
+            <button
+              key={example}
+              type="button"
+              disabled={isLoading}
+              onClick={() => submitExample(example)}
+              className="rounded-lg border border-stone-200/90 bg-white/70 px-3 py-1.5 text-xs font-medium text-stone-600 hover:border-primary/35 hover:text-primary hover:bg-primary-muted/50 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 text-left text-pretty max-w-full"
+            >
+              {example}
+            </button>
+          ))}
+        </div>
       </div>
       <button
         type="submit"
         disabled={isLoading}
-        className="self-end rounded-full bg-violet-600 px-8 py-3 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50 transition-colors"
+        className="self-end rounded-full bg-primary px-8 py-3 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50 transition-all duration-200 active:scale-[0.98] shadow-md shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
       >
         {isLoading ? 'Shaping…' : 'Shape my wish'}
       </button>
