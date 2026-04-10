@@ -12,7 +12,7 @@ function ChevronLeft({ className }) {
 
 export default function AppHeader() {
   const navigate = useNavigate()
-  const { homeActive, historyActive } = usePrimaryNavActive()
+  const { homeActive, historyActive, favoritesActive } = usePrimaryNavActive()
   const wishDetail = useWishDetailHeaderMeta()
   const resultOverview = useResultOverviewHeaderMeta()
 
@@ -55,6 +55,9 @@ export default function AppHeader() {
               <Link to="/history" className={linkClass(historyActive)} aria-current={historyActive ? 'page' : undefined}>
                 History
               </Link>
+              <Link to="/favorites" className={linkClass(favoritesActive)} aria-current={favoritesActive ? 'page' : undefined}>
+                Favorites
+              </Link>
             </nav>
           </>
         ) : resultOverview ? (
@@ -81,6 +84,9 @@ export default function AppHeader() {
               <Link to="/history" className={linkClass(historyActive)} aria-current={historyActive ? 'page' : undefined}>
                 History
               </Link>
+              <Link to="/favorites" className={linkClass(favoritesActive)} aria-current={favoritesActive ? 'page' : undefined}>
+                Favorites
+              </Link>
             </nav>
           </>
         ) : (
@@ -97,6 +103,9 @@ export default function AppHeader() {
               </Link>
               <Link to="/history" className={linkClass(historyActive)} aria-current={historyActive ? 'page' : undefined}>
                 History
+              </Link>
+              <Link to="/favorites" className={linkClass(favoritesActive)} aria-current={favoritesActive ? 'page' : undefined}>
+                Favorites
               </Link>
             </nav>
           </div>

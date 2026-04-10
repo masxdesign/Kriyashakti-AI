@@ -3,6 +3,7 @@ import { motion, useMotionValue, useTransform, useMotionValueEvent, animate, use
 import { useDrag } from '@use-gesture/react'
 import { generateVisualization, generateAffirmation } from '../api/processWish.js'
 import { cn } from '@/lib/utils'
+import { makeFavoriteDedupeKey, isFavoriteDedupeKey, toggleFavorite } from '../store/historyDB.js'
 import {
   Drawer,
   DrawerContent,
@@ -15,6 +16,14 @@ function IconChevronsLeft({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+    </svg>
+  )
+}
+
+function IconStar({ className, filled }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
     </svg>
   )
 }
@@ -51,6 +60,8 @@ const SwipeCard = forwardRef(function SwipeCard({
   option, visualization, vizState, onGenerateViz,
   affirmation, affState, onGenerateAff,
   onSwipe, x, className,
+  favorited, onToggleFavorite, favoriteEnabled,
+  favoriteSaving, favoriteError,
 }, ref) {
   const [dialogOpen, setDialogOpen] = useState(null)
 
@@ -93,11 +104,6 @@ const SwipeCard = forwardRef(function SwipeCard({
   }))
 
   const bind = useDrag(({ down, movement: [mx], velocity: [vx], canceled, event, cancel }) => {
-    if (event?.target?.closest('button, a, [data-no-drag]')) {
-      cancel()
-      return
-    }
-
     if (canceled) {
       stopCardAnim()
       const anim = animate(x, 0, { type: 'spring', stiffness: 300, damping: 20 })
@@ -139,91 +145,138 @@ const SwipeCard = forwardRef(function SwipeCard({
   }, { filterTaps: true, pointer: { capture: true } })
 
   return (
-    <motion.div
-      {...bind()}
-      initial={false}
-      layout={false}
-      style={{ x, rotate, touchAction: 'none' }}
+    <div
       className={cn(
-        'relative z-10 w-full cursor-grab active:cursor-grabbing',
+        'relative z-10 flex w-full flex-col gap-4',
         className,
       )}
     >
-      <div className="flex flex-col rounded-2xl border border-stone-100/90 bg-white/95 px-6 py-6 shadow-sm shadow-stone-900/5">
-        <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-1">{option}</p>
+      <motion.div
+        initial={false}
+        layout={false}
+        style={{ x, rotate, touchAction: 'none' }}
+        className="relative w-full"
+      >
+        <div
+          {...bind()}
+          className="flex w-full cursor-grab touch-none flex-col rounded-2xl border border-stone-100/90 bg-white/95 px-6 py-6 shadow-sm shadow-stone-900/5 active:cursor-grabbing"
+        >
+          <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-14">
+            {option}
+          </p>
+        </div>
 
-          <div
-            data-no-drag
-            className={cn(
-              'mt-5 flex min-h-8 flex-nowrap items-center gap-x-3 border-t border-stone-100/90 pt-4 sm:gap-x-4',
-              visualization ? 'justify-between' : 'justify-start',
-            )}
-          >
-            <div className="flex h-8 min-w-0 items-center">
-              {vizState === 'loading' ? (
-                <span className="inline-flex h-8 items-center text-xs text-stone-500">Shaping visualization…</span>
-              ) : vizState === 'error' ? (
-                <button
-                  type="button"
-                  onClick={onGenerateViz}
-                  className="inline-flex h-8 max-w-full items-center truncate text-xs text-red-600 hover:text-red-800 underline-offset-2 hover:underline transition-colors"
-                >
-                  Could not generate. Try again
-                </button>
-              ) : visualization ? (
-                <button
-                  type="button"
-                  onClick={() => setDialogOpen('viz')}
-                  className="inline-flex h-8 max-w-full items-center truncate rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-                >
-                  View visualization
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={onGenerateViz}
-                  className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-                >
-                  Generate visualization
-                </button>
-              )}
+        <motion.div style={{ opacity: nextLabel }} className="pointer-events-none absolute right-4 top-4 rounded-md bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
+          Next →
+        </motion.div>
+      </motion.div>
+
+      <div className="flex flex-col gap-3 px-0.5">
+        {favoriteEnabled && (
+          <div className="flex flex-col gap-1">
+            <div className="flex min-h-8 items-center gap-2">
+              <button
+                type="button"
+                disabled={favoriteSaving}
+                onClick={onToggleFavorite}
+                className={cn(
+                  'rounded-lg p-1.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-50',
+                  favorited
+                    ? 'text-amber-500 ring-2 ring-amber-400/40 hover:text-amber-600'
+                    : 'text-stone-300 hover:text-amber-500',
+                )}
+                aria-pressed={favorited}
+                aria-busy={favoriteSaving}
+                aria-label={favorited ? 'Remove from favorites' : 'Save to favorites'}
+              >
+                <IconStar className="h-5 w-5" filled={favorited} />
+              </button>
+              {favorited && !favoriteSaving ? (
+                <span className="text-xs font-semibold text-amber-600">Saved on this device</span>
+              ) : null}
+              {favoriteSaving ? (
+                <span className="text-xs text-stone-500">Saving…</span>
+              ) : null}
             </div>
+            {favoriteError ? (
+              <p className="text-xs text-red-600" role="alert">
+                Could not update favorites. Check that browser storage is allowed, then try again.
+              </p>
+            ) : null}
+          </div>
+        )}
 
-            {visualization && (
-              <>
-                <span className="h-4 w-px shrink-0 bg-stone-200/90" aria-hidden />
-                <div className="flex h-8 min-w-0 items-center">
-                  {affState === 'loading' ? (
-                    <span className="inline-flex h-8 items-center text-xs text-stone-500">Shaping affirmation…</span>
-                  ) : affState === 'error' ? (
-                    <button
-                      type="button"
-                      onClick={onGenerateAff}
-                      className="inline-flex h-8 max-w-full items-center truncate text-xs text-red-600 hover:text-red-800 underline-offset-2 hover:underline transition-colors"
-                    >
-                      Could not generate. Try again
-                    </button>
-                  ) : affirmation ? (
-                    <button
-                      type="button"
-                      onClick={() => setDialogOpen('aff')}
-                      className="inline-flex h-8 max-w-full items-center truncate rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-                    >
-                      View affirmation
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={onGenerateAff}
-                      className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-                    >
-                      Generate affirmation
-                    </button>
-                  )}
-                </div>
-              </>
+        <div
+          className={cn(
+            'flex min-h-8 flex-nowrap items-center gap-x-3 border-t border-stone-200/90 pt-4 sm:gap-x-4',
+            visualization ? 'justify-between' : 'justify-start',
+          )}
+        >
+          <div className="flex h-8 min-w-0 items-center">
+            {vizState === 'loading' ? (
+              <span className="inline-flex h-8 items-center text-xs text-stone-500">Shaping visualization…</span>
+            ) : vizState === 'error' ? (
+              <button
+                type="button"
+                onClick={onGenerateViz}
+                className="inline-flex h-8 max-w-full items-center truncate text-xs text-red-600 hover:text-red-800 underline-offset-2 hover:underline transition-colors"
+              >
+                Could not generate. Try again
+              </button>
+            ) : visualization ? (
+              <button
+                type="button"
+                onClick={() => setDialogOpen('viz')}
+                className="inline-flex h-8 max-w-full items-center truncate rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+              >
+                View visualization
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onGenerateViz}
+                className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+              >
+                Generate visualization
+              </button>
             )}
           </div>
+
+          {visualization && (
+            <>
+              <span className="h-4 w-px shrink-0 bg-stone-200/90" aria-hidden />
+              <div className="flex h-8 min-w-0 items-center">
+                {affState === 'loading' ? (
+                  <span className="inline-flex h-8 items-center text-xs text-stone-500">Shaping affirmation…</span>
+                ) : affState === 'error' ? (
+                  <button
+                    type="button"
+                    onClick={onGenerateAff}
+                    className="inline-flex h-8 max-w-full items-center truncate text-xs text-red-600 hover:text-red-800 underline-offset-2 hover:underline transition-colors"
+                  >
+                    Could not generate. Try again
+                  </button>
+                ) : affirmation ? (
+                  <button
+                    type="button"
+                    onClick={() => setDialogOpen('aff')}
+                    className="inline-flex h-8 max-w-full items-center truncate rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+                  >
+                    View affirmation
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onGenerateAff}
+                    className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+                  >
+                    Generate affirmation
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <Drawer open={dialogOpen !== null} onOpenChange={open => !open && setDialogOpen(null)}>
@@ -273,11 +326,7 @@ const SwipeCard = forwardRef(function SwipeCard({
           </div>
         </DrawerContent>
       </Drawer>
-
-      <motion.div style={{ opacity: nextLabel }} className="absolute right-4 top-4 rounded-md bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary pointer-events-none">
-        Next →
-      </motion.div>
-    </motion.div>
+    </div>
   )
 })
 
@@ -289,10 +338,25 @@ export default function SuggestionSlider({
   onAffirmationsGenerated,
   /** When true, this block is the page hero (Result page). */
   showPrimaryHeading = false,
+  /** When set, star saves this Kriyashakti line to IndexedDB favorites. */
+  sessionId,
+  wishIndex = 0,
+  coreWish = '',
+  rootWish = '',
+  /** Open the slider at this option index (e.g. from Favorites deep link). */
+  initialOptionIndex,
 }) {
   const total = options.length
-  const [index, setIndex] = useState(0)
+  const [index, setIndex] = useState(() =>
+    initialOptionIndex != null && initialOptionIndex >= 0 && initialOptionIndex < options.length
+      ? initialOptionIndex
+      : 0,
+  )
+  const [favorited, setFavorited] = useState(false)
+  const [favoriteSaving, setFavoriteSaving] = useState(false)
+  const [favoriteError, setFavoriteError] = useState(false)
   const [behindIndex, setBehindIndex] = useState(1 % total)
+  const wishIndexNum = Number.isFinite(Number(wishIndex)) ? Number(wishIndex) : 0
 
   const [visualizations, setVisualizations] = useState(
     () => Array.from({ length: total }, (_, i) => initialVisualizations?.[i] ?? null)
@@ -311,6 +375,63 @@ export default function SuggestionSlider({
   const cardRef = useRef(null)
   const indexRef = useRef(index)
   indexRef.current = index
+
+  useEffect(() => {
+    if (
+      initialOptionIndex != null &&
+      initialOptionIndex >= 0 &&
+      initialOptionIndex < total
+    ) {
+      setIndex(initialOptionIndex)
+    }
+  }, [initialOptionIndex, total])
+
+  useEffect(() => {
+    setFavoriteError(false)
+  }, [sessionId, wishIndexNum, index])
+
+  useEffect(() => {
+    if (!sessionId) {
+      setFavorited(false)
+      return
+    }
+    let cancelled = false
+    const key = makeFavoriteDedupeKey(sessionId, wishIndexNum, index)
+    isFavoriteDedupeKey(key)
+      .then(ok => {
+        if (!cancelled) setFavorited(ok)
+      })
+      .catch(() => {
+        if (!cancelled) setFavorited(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [sessionId, wishIndexNum, index])
+
+  async function handleToggleFavorite() {
+    if (!sessionId) return
+    setFavoriteError(false)
+    setFavoriteSaving(true)
+    try {
+      const { favorited: next } = await toggleFavorite({
+        dedupeKey: makeFavoriteDedupeKey(sessionId, wishIndexNum, index),
+        sessionId,
+        wishIndex: wishIndexNum,
+        optionIndex: index,
+        kriyashakti: options[index],
+        coreWish,
+        rootWish,
+        visualization: visualizations[index],
+        affirmation: affirmations[index],
+      })
+      setFavorited(next)
+    } catch {
+      setFavoriteError(true)
+    } finally {
+      setFavoriteSaving(false)
+    }
+  }
 
   /** Only when drag first crosses into negative x — avoids setState every frame and swipe flicker. */
   const peekingLeftRef = useRef(false)
@@ -396,17 +517,24 @@ export default function SuggestionSlider({
       {total > 1 && <SwipeHint />}
 
       <div className="relative grid grid-cols-1 grid-rows-1 place-items-start select-none">
-        {/* Card behind — same grid cell; row height = max(front, back) */}
+        {/* Card behind — mirrors front stack height (statement card + spacer for controls below) */}
         <motion.div
-          className="col-start-1 row-start-1 w-full max-w-full rounded-2xl border border-stone-100/90 bg-white/90 px-6 py-6 flex flex-col overflow-hidden shadow-sm shadow-stone-900/5 z-0"
+          className="col-start-1 row-start-1 z-0 flex w-full max-w-full flex-col gap-4 overflow-hidden"
           style={{
             scale: useTransform(x, [-300, 0], [0.97, 1]),
             transformOrigin: 'bottom',
           }}
         >
-          <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty">{options[behindIndex]}</p>
+          <div className="rounded-2xl border border-stone-100/90 bg-white/90 px-6 py-6 shadow-sm shadow-stone-900/5">
+            <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-14">
+              {options[behindIndex]}
+            </p>
+          </div>
           <div
-            className="mt-5 flex min-h-8 flex-nowrap items-center gap-x-3 border-t border-transparent pt-4 sm:gap-x-4"
+            className={cn(
+              'pointer-events-none shrink-0 border-t border-transparent pt-0',
+              sessionId ? 'min-h-[6.75rem]' : 'min-h-[4.5rem]',
+            )}
             aria-hidden
           />
         </motion.div>
@@ -424,6 +552,11 @@ export default function SuggestionSlider({
           onGenerateAff={() => handleGenerateAff(index)}
           onSwipe={handleSwipe}
           x={x}
+          favorited={favorited}
+          onToggleFavorite={handleToggleFavorite}
+          favoriteEnabled={Boolean(sessionId)}
+          favoriteSaving={favoriteSaving}
+          favoriteError={favoriteError}
         />
       </div>
 
