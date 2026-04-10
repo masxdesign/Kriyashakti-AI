@@ -1,13 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(20 14.3% 4.1%);
-  --muted-foreground: hsl(25 5.3% 44.7%);
-  --border: hsl(20 5.9% 90%);
-  --ring: hsl(20 14.3% 4.1%);
-  --accent: hsl(60 4.8% 95.9%);
-  --accent-foreground: hsl(24 9.8% 10%);
+  --font-sans-stack: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --background: #faf7f4;
+  --foreground: #1c1917;
+  --muted-foreground: #57534e;
+  --border: #e7e5e4;
+  /* Single muted plum accent — avoids the default violet “AI” gradient look */
+  --primary: oklch(0.44 0.055 305);
+  --primary-hover: oklch(0.38 0.06 305);
+  --primary-muted: oklch(0.94 0.02 305);
+  --ring: oklch(0.44 0.055 305);
+  --accent: oklch(0.96 0.01 75);
+  --accent-foreground: #292524;
   --radius: 0.5rem;
 }
 
@@ -17,8 +22,92 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-muted: var(--primary-muted);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --font-sans: var(--font-sans-stack);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans-stack);
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle grain — breaks flat vector sterility */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Page shell (shared) ── */
+
+.page-shell {
+  box-sizing: border-box;
+  flex: 1 0 auto;
+  width: 100%;
+  min-height: min(100dvh, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Mobile: less bottom padding — root main adds space for the tab bar */
+  padding: 2rem 1rem 1.25rem;
+  gap: 2rem;
+  background: radial-gradient(
+      ellipse 120% 80% at 50% -30%,
+      color-mix(in oklab, var(--primary) 7%, transparent),
+      transparent 55%
+    ),
+    var(--background);
+}
+
+@media (min-width: 768px) {
+  .page-shell {
+    padding-top: 3rem;
+    padding-bottom: 5rem;
+  }
+}
+
+.page-heading {
+  text-align: center;
+  max-width: 36rem;
+}
+
+.page-title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  color: var(--foreground);
+  text-wrap: balance;
+}
+
+.page-lead {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+  max-width: 42ch;
+  margin-inline: auto;
 }
 
 /* ── Loading screen ── */
@@ -26,22 +115,28 @@
 .kriya-loader {
   position: fixed;
   inset: 0;
+  z-index: 50;
   overflow: hidden;
-  background: linear-gradient(160deg, #f5f3ff 0%, #fdf8f6 60%, #fafaf9 100%);
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--primary-muted) 85%, white) 0%,
+    #faf7f4 55%,
+    #f5f2ed 100%
+  );
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 56px;
-  font-family: Inter, Arial, sans-serif;
+  font-family: var(--font-sans-stack);
 }
 
 .kriya-loader__bg {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(ellipse 55% 45% at 15% 25%, rgba(139,92,246,0.09) 0%, transparent 70%),
-    radial-gradient(ellipse 45% 55% at 85% 75%, rgba(168,85,247,0.07) 0%, transparent 65%);
+    radial-gradient(ellipse 55% 45% at 15% 25%, color-mix(in oklab, var(--primary) 12%, transparent) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 55% at 85% 75%, color-mix(in oklab, var(--primary) 9%, transparent) 0%, transparent 65%);
   pointer-events: none;
 }
 
@@ -55,7 +150,7 @@
 .kriya-blob--1 {
   width: 400px;
   height: 400px;
-  background: rgba(139,92,246,0.10);
+  background: color-mix(in oklab, var(--primary) 14%, transparent);
   top: -80px;
   left: -100px;
   animation: blob-drift-1 16s ease-in-out infinite;
@@ -64,7 +159,7 @@
 .kriya-blob--2 {
   width: 320px;
   height: 320px;
-  background: rgba(168,85,247,0.08);
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
   bottom: -60px;
   right: -80px;
   animation: blob-drift-2 19s ease-in-out infinite;
@@ -82,7 +177,6 @@
   padding: 8px 0;
 }
 
-/* Sushumna nadi — glowing central channel */
 .chakra-channel {
   position: absolute;
   top: 0;
@@ -90,20 +184,19 @@
   width: 3px;
   background: linear-gradient(
     to bottom,
-    rgba(168,85,247,0.70),
-    rgba(99,102,241,0.60),
-    rgba(6,182,212,0.55),
-    rgba(34,197,94,0.55),
-    rgba(234,179,8,0.55),
-    rgba(249,115,22,0.55),
-    rgba(239,68,68,0.65)
+    color-mix(in oklab, var(--primary) 70%, #c4b5a3),
+    oklch(0.55 0.08 260),
+    oklch(0.58 0.1 200),
+    oklch(0.58 0.12 145),
+    oklch(0.62 0.12 95),
+    oklch(0.58 0.12 55),
+    oklch(0.55 0.14 25)
   );
   border-radius: 3px;
   filter: blur(1px);
   animation: channel-pulse 2.8s ease-in-out infinite;
 }
 
-/* Each chakra node — size set inline via JS */
 .chakra-node {
   position: relative;
   display: flex;
@@ -112,7 +205,6 @@
   flex-shrink: 0;
 }
 
-/* SVG layers — all absolutely positioned over the node */
 .chakra-svg {
   position: absolute;
   inset: 0;
@@ -121,20 +213,16 @@
   overflow: visible;
 }
 
-/* Outer petals: slow clockwise, staggered by --delay */
 .chakra-svg--outer {
   animation: spin-cw var(--spin-dur) linear infinite;
-  animation-delay: calc(var(--delay) * -1); /* negative = pre-offset so they start spread */
+  animation-delay: calc(var(--delay) * -1);
 }
 
-/* Inner petals: slightly faster counter-clockwise */
 .chakra-svg--inner {
   animation: spin-ccw calc(var(--spin-dur) * 0.65) linear infinite;
   animation-delay: calc(var(--delay) * -0.5);
 }
 
-
-/* Glow aura behind each chakra */
 .chakra-aura {
   position: absolute;
   inset: -4px;
@@ -144,8 +232,6 @@
   animation-delay: var(--delay);
   pointer-events: none;
 }
-
-/* ── Text ── */
 
 .kriya-loader__copy {
   position: relative;
@@ -162,7 +248,7 @@
   margin: 0;
   font-size: clamp(20px, 3vw, 28px);
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   color: #1c1917;
   line-height: 1.1;
 }
@@ -170,15 +256,15 @@
 .kriya-loader__tagline {
   margin: 0;
   font-size: 13px;
-  line-height: 1.6;
-  color: #78716c;
+  line-height: 1.65;
+  color: #57534e;
 }
 
 .kriya-loader__status {
   margin: 4px 0 0;
   font-size: 13px;
   font-weight: 600;
-  color: #7c3aed;
+  color: var(--primary);
   min-height: 20px;
   transition: opacity 0.3s ease;
 }
@@ -193,50 +279,89 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #e9d5ff;
+  background: color-mix(in oklab, var(--primary) 22%, #e7e5e4);
   transition: background 0.3s ease, transform 0.3s ease;
 }
 
 .kriya-dot--active {
-  background: #7c3aed;
+  background: var(--primary);
   transform: scale(1.35);
 }
 
-/* ── Keyframes ── */
-
 @keyframes spin-cw {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes spin-ccw {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(-360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
 }
 
 @keyframes aura-pulse {
-  0%, 100% { opacity: 0.40; transform: scale(0.95); }
-  50%       { opacity: 0.80; transform: scale(1.05); }
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
 }
 
 @keyframes channel-pulse {
-  0%, 100% { opacity: 0.55; }
-  50%       { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes blob-drift-1 {
-  0%, 100% { transform: translate(0, 0); }
-  50%       { transform: translate(30px, 20px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, 20px);
+  }
 }
 
 @keyframes blob-drift-2 {
-  0%, 100% { transform: translate(0, 0); }
-  50%       { transform: translate(-25px, -30px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-25px, -30px);
+  }
 }
 
 @media (max-width: 640px) {
-  .kriya-loader { flex-direction: column; gap: 32px; }
-  .kriya-loader__copy { text-align: center; align-items: center; }
-  .chakra-node { width: 52px; height: 52px; }
-  .chakra-column { gap: 4px; }
+  .kriya-loader {
+    flex-direction: column;
+    gap: 32px;
+  }
+  .kriya-loader__copy {
+    text-align: center;
+    align-items: center;
+  }
+  .chakra-node {
+    width: 52px;
+    height: 52px;
+  }
+  .chakra-column {
+    gap: 4px;
+  }
 }

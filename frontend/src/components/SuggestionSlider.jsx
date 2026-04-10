@@ -60,7 +60,7 @@ const SwipeCard = forwardRef(function SwipeCard({
     <motion.div
       {...bind()}
       style={{ x, rotate, opacity, touchAction: 'none' }}
-      className="absolute inset-0 rounded-2xl border border-stone-100 bg-white px-6 py-6 flex flex-col gap-4 cursor-grab active:cursor-grabbing overflow-hidden"
+      className="absolute inset-0 rounded-2xl border border-stone-100/90 bg-white/95 shadow-sm shadow-stone-900/5 px-6 py-6 flex flex-col gap-4 cursor-grab active:cursor-grabbing overflow-hidden"
     >
       <div className="flex flex-col gap-4 overflow-y-auto flex-1 pr-1">
         <p className="text-stone-800 text-base font-medium leading-snug">{option}</p>
@@ -69,17 +69,17 @@ const SwipeCard = forwardRef(function SwipeCard({
         <div>
           {visualization ? (
             <>
-              <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Picture this in your mind</p>
+              <p className="text-xs font-medium tracking-[0.1em] text-stone-500 uppercase mb-1">Picture this in your mind</p>
               <p className="text-stone-600 text-sm leading-relaxed">{visualization}</p>
             </>
           ) : vizState === 'loading' ? (
             <Skeleton />
           ) : vizState === 'error' ? (
-            <button onClick={onGenerateViz} className="text-xs text-red-400 hover:text-red-600 transition-colors text-left">
-              Failed to generate. Try again →
+            <button type="button" onClick={onGenerateViz} className="text-xs text-red-600 hover:text-red-700 underline-offset-2 hover:underline transition-colors text-left">
+              Could not generate. Try again
             </button>
           ) : (
-            <button onClick={onGenerateViz} className="mt-1 rounded-full border border-violet-200 px-4 py-1.5 text-xs text-violet-500 hover:bg-violet-50 transition-colors">
+            <button type="button" onClick={onGenerateViz} className="mt-1 rounded-lg border border-primary/25 bg-primary-muted/50 px-4 py-1.5 text-xs font-medium text-primary hover:bg-primary-muted transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
               Generate visualization
             </button>
           )}
@@ -90,7 +90,7 @@ const SwipeCard = forwardRef(function SwipeCard({
           <div>
             {affirmation ? (
               <>
-                <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Your affirmation</p>
+                <p className="text-xs font-medium tracking-[0.1em] text-stone-500 uppercase mb-1">Your affirmation</p>
                 <div className="flex flex-col gap-0.5">
                   {affirmation.split('\n').map((line, i) => (
                     <p key={i} className="text-stone-600 text-sm leading-relaxed italic">{line}</p>
@@ -100,11 +100,11 @@ const SwipeCard = forwardRef(function SwipeCard({
             ) : affState === 'loading' ? (
               <Skeleton />
             ) : affState === 'error' ? (
-              <button onClick={onGenerateAff} className="text-xs text-red-400 hover:text-red-600 transition-colors text-left">
-                Failed to generate. Try again →
+              <button type="button" onClick={onGenerateAff} className="text-xs text-red-600 hover:text-red-700 underline-offset-2 hover:underline transition-colors text-left">
+                Could not generate. Try again
               </button>
             ) : (
-              <button onClick={onGenerateAff} className="rounded-full border border-amber-200 px-4 py-1.5 text-xs text-amber-600 hover:bg-amber-50 transition-colors">
+              <button type="button" onClick={onGenerateAff} className="rounded-lg border border-primary/25 bg-primary-muted/50 px-4 py-1.5 text-xs font-medium text-primary hover:bg-primary-muted transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
                 Generate affirmation
               </button>
             )}
@@ -112,10 +112,10 @@ const SwipeCard = forwardRef(function SwipeCard({
         )}
       </div>
 
-      <motion.div style={{ opacity: nextLabel }} className="absolute right-4 top-4 rounded-full bg-stone-100 px-3 py-1 text-xs text-stone-400 pointer-events-none">
+      <motion.div style={{ opacity: nextLabel }} className="absolute right-4 top-4 rounded-md bg-stone-100/90 px-2.5 py-1 text-xs font-medium text-stone-500 pointer-events-none">
         next →
       </motion.div>
-      <motion.div style={{ opacity: prevLabel }} className="absolute left-4 top-4 rounded-full bg-stone-100 px-3 py-1 text-xs text-stone-400 pointer-events-none">
+      <motion.div style={{ opacity: prevLabel }} className="absolute left-4 top-4 rounded-md bg-stone-100/90 px-2.5 py-1 text-xs font-medium text-stone-500 pointer-events-none">
         ← prev
       </motion.div>
     </motion.div>
@@ -215,14 +215,14 @@ export default function SuggestionSlider({ options, visualizations: initialVisua
 
   return (
     <div className="w-full">
-      <p className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-3">
-        Version {index + 1} of {total} — pick the one that feels right
+      <p className="text-xs font-medium tracking-[0.08em] text-primary/80 uppercase mb-3">
+        Version {index + 1} of {total} — pick what feels right
       </p>
 
       <div className="relative h-[340px] select-none">
         {/* Card behind */}
         <motion.div
-          className="absolute inset-0 rounded-2xl border border-stone-100 bg-white px-6 py-6 flex flex-col gap-4 overflow-hidden"
+          className="absolute inset-0 rounded-2xl border border-stone-100/90 bg-white/90 px-6 py-6 flex flex-col gap-4 overflow-hidden shadow-sm shadow-stone-900/5"
           style={{
             scale: useTransform(x, [-300, -60, 0, 60, 300], [1, 1, 0.97, 1, 1]),
             transformOrigin: 'bottom',
@@ -232,7 +232,7 @@ export default function SuggestionSlider({ options, visualizations: initialVisua
             <p className="text-stone-800 text-base font-medium leading-snug">{options[behindIndex]}</p>
             {behindViz ? (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Picture this in your mind</p>
+                <p className="text-xs font-medium tracking-[0.1em] text-stone-500 uppercase mb-1">Picture this in your mind</p>
                 <p className="text-stone-600 text-sm leading-relaxed">{behindViz}</p>
               </div>
             ) : behindVizState === 'loading' ? (
@@ -240,7 +240,7 @@ export default function SuggestionSlider({ options, visualizations: initialVisua
             ) : null}
             {behindViz && behindAff && (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Your affirmation</p>
+                <p className="text-xs font-medium tracking-[0.1em] text-stone-500 uppercase mb-1">Your affirmation</p>
                 <div className="flex flex-col gap-0.5">
                   {behindAff.split('\n').map((line, i) => (
                     <p key={i} className="text-stone-600 text-sm leading-relaxed italic">{line}</p>
@@ -269,8 +269,9 @@ export default function SuggestionSlider({ options, visualizations: initialVisua
 
       <div className="flex items-center justify-between mt-4 px-1">
         <button
+          type="button"
           onClick={goPrev}
-          className="rounded-full px-4 py-1.5 text-sm text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-colors"
+          className="rounded-full px-4 py-1.5 text-sm font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-100/90 transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
         >
           ← Prev
         </button>
@@ -278,13 +279,14 @@ export default function SuggestionSlider({ options, visualizations: initialVisua
           {options.map((_, i) => (
             <span
               key={i}
-              className={`rounded-full transition-all duration-200 ${i === index ? 'w-4 h-1.5 bg-violet-400' : 'w-1.5 h-1.5 bg-stone-200'}`}
+              className={`rounded-full transition-all duration-200 ${i === index ? 'w-4 h-1.5 bg-primary' : 'w-1.5 h-1.5 bg-stone-200'}`}
             />
           ))}
         </div>
         <button
+          type="button"
           onClick={goNext}
-          className="rounded-full px-4 py-1.5 text-sm text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-colors"
+          className="rounded-full px-4 py-1.5 text-sm font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-100/90 transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
         >
           Next →
         </button>

@@ -31,19 +31,17 @@ export default function WishDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-violet-50 to-stone-50 flex flex-col items-center px-4 py-16 gap-8">
-      <div className="w-full max-w-2xl flex items-center gap-3">
-        <button
-          onClick={() => navigate({ to: '/result' })}
-          className="text-sm text-stone-400 hover:text-stone-600 transition-colors"
-        >
-          ← Back
-        </button>
-      </div>
-
+    <div className="page-shell">
       <div className="w-full max-w-2xl">
-        <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">Your intention</p>
-        <h1 className="text-xl font-semibold text-stone-800">{item.wish}</h1>
+        <button
+          type="button"
+          onClick={() => navigate({ to: '/result' })}
+          className="mb-6 text-sm font-medium text-stone-500 hover:text-stone-800 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 rounded-md -ml-1 px-1"
+        >
+          ← Back to overview
+        </button>
+        <p className="text-xs font-medium tracking-[0.12em] text-stone-500 uppercase mb-2">Your intention</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-stone-900 text-balance leading-snug">{item.wish}</h1>
       </div>
 
       <div className="w-full max-w-2xl">
@@ -59,6 +57,6 @@ export default function WishDetailPage() {
           onAffirmationsGenerated={handleAffirmationsGenerated}
         />
       </div>
-    </main>
+    </div>
   )
 }
