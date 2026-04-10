@@ -21,8 +21,17 @@ function IconHistory({ active }) {
   )
 }
 
+function IconStar({ active }) {
+  const c = active ? 'text-primary' : 'text-stone-400'
+  return (
+    <svg className={`h-6 w-6 ${c}`} viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+  )
+}
+
 export default function AppBottomNav() {
-  const { homeActive, historyActive } = usePrimaryNavActive()
+  const { homeActive, historyActive, favoritesActive } = usePrimaryNavActive()
 
   const itemClass = active =>
     [
@@ -52,6 +61,14 @@ export default function AppBottomNav() {
         >
           <IconHistory active={historyActive} />
           <span className={`text-[11px] font-semibold tracking-wide ${historyActive ? 'text-primary' : 'text-stone-500'}`}>History</span>
+        </Link>
+        <Link
+          to="/favorites"
+          className={itemClass(favoritesActive)}
+          aria-current={favoritesActive ? 'page' : undefined}
+        >
+          <IconStar active={favoritesActive} />
+          <span className={`text-[11px] font-semibold tracking-wide ${favoritesActive ? 'text-primary' : 'text-stone-500'}`}>Saved</span>
         </Link>
       </div>
     </nav>

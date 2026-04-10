@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { getWishResult, setWishResult } from '../store/wishResult.js'
 import SuggestionSlider from '../components/SuggestionSlider.jsx'
 import HowToUse from '../components/HowToUse.jsx'
@@ -7,6 +7,7 @@ import { updateVisualizationsInHistory, updateAffirmationsInHistory } from '../s
 export default function WishDetailPage() {
   const navigate = useNavigate()
   const { sessionId, index } = useParams({ from: '/result/$sessionId/wish/$index' })
+  const { line: lineFromSearch } = useSearch({ from: '/result/$sessionId/wish/$index' })
   const result = getWishResult()
   const wishIndex = Number(index)
   const item = result?.data?.[wishIndex]
@@ -47,6 +48,11 @@ export default function WishDetailPage() {
           affirmations={item.affirmations}
           onVisualizationsGenerated={handleVisualizationsGenerated}
           onAffirmationsGenerated={handleAffirmationsGenerated}
+          sessionId={result.sessionId}
+          wishIndex={wishIndex}
+          coreWish={item.wish}
+          rootWish={result.wish}
+          initialOptionIndex={lineFromSearch}
         />
       </div>
     </div>

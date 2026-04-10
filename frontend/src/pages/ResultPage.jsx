@@ -44,6 +44,10 @@ export default function ResultPage() {
               onVisualizationsGenerated={handleVisualizationsGenerated}
               onAffirmationsGenerated={handleAffirmationsGenerated}
               showPrimaryHeading
+              sessionId={result.sessionId}
+              wishIndex={0}
+              coreWish={result.data[0].wish}
+              rootWish={result.wish}
             />
           </div>
           <div className="w-full max-w-2xl">

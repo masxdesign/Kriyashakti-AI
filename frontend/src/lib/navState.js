@@ -1,12 +1,13 @@
 import { useRouterState } from '@tanstack/react-router'
 import { getWishResult } from '@/store/wishResult.js'
 
-/** Home tab = input + result flow; History = saved list only. */
+/** Home tab = input + result flow; History = saved list; Favorites = starred lines. */
 export function usePrimaryNavActive() {
   const pathname = useRouterState({ select: s => s.location.pathname })
   const homeActive = pathname === '/' || pathname.startsWith('/result')
   const historyActive = pathname === '/history'
-  return { pathname, homeActive, historyActive }
+  const favoritesActive = pathname === '/favorites'
+  return { pathname, homeActive, historyActive, favoritesActive }
 }
 
 /** When on /result/:sessionId/wish/:index, return title for top bar; otherwise null. */

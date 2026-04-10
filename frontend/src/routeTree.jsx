@@ -5,13 +5,18 @@ import InputPage from './pages/InputPage.jsx'
 import ResultPage from './pages/ResultPage.jsx'
 import WishDetailPage from './pages/WishDetailPage.jsx'
 import HistoryPage from './pages/HistoryPage.jsx'
+import FavoritesPage from './pages/FavoritesPage.jsx'
 import { getHistoryBySessionId } from './store/historyDB.js'
 import { setWishResult } from './store/wishResult.js'
 
 async function loadResultFromSession(params) {
   const entry = await getHistoryBySessionId(params.sessionId)
   if (!entry) throw redirect({ to: '/' })
-  setWishResult(entry)
+  // Older history rows may omit sessionId; URL is authoritative for favorites + deep links.
+  setWishResult({
+    ...entry,
+    sessionId: entry.sessionId ?? params.sessionId,
+  })
 }
 
 function RootLayout() {
@@ -48,6 +53,12 @@ export const indexRoute = createRoute({
 export const wishDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/result/$sessionId/wish/$index',
+  validateSearch: raw => ({
+    line: (() => {
+      const n = Number(raw?.line)
+      return Number.isFinite(n) && n >= 0 ? Math.floor(n) : undefined
+    })(),
+  }),
   beforeLoad: ({ params }) => loadResultFromSession(params),
   component: WishDetailPage,
 })
@@ -65,4 +76,16 @@ export const historyRoute = createRoute({
   component: HistoryPage,
 })
 
-export const routeTree = rootRoute.addChildren([indexRoute, wishDetailRoute, resultRoute, historyRoute])
+export const favoritesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/favorites',
+  component: FavoritesPage,
+})
+
+export const routeTree = rootRoute.addChildren([
+  indexRoute,
+  wishDetailRoute,
+  resultRoute,
+  historyRoute,
+  favoritesRoute,
+])
