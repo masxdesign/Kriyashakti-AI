@@ -62,6 +62,7 @@ const SwipeCard = forwardRef(function SwipeCard({
   onSwipe, x, className,
   favorited, onToggleFavorite, favoriteEnabled,
   favoriteSaving, favoriteError,
+  bottomOpacity,
 }, ref) {
   const [dialogOpen, setDialogOpen] = useState(null)
 
@@ -161,7 +162,7 @@ const SwipeCard = forwardRef(function SwipeCard({
           {...bind()}
           className="flex w-full cursor-grab touch-none flex-col rounded-2xl border border-stone-100/90 bg-white/95 px-6 py-6 shadow-sm shadow-stone-900/5 active:cursor-grabbing"
         >
-          <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-14">
+          <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-14 min-h-20">
             {option}
           </p>
         </div>
@@ -171,7 +172,7 @@ const SwipeCard = forwardRef(function SwipeCard({
         </motion.div>
       </motion.div>
 
-      <div className="flex flex-col gap-3 px-0.5">
+      <motion.div className="flex flex-col gap-3 px-0.5" style={{ opacity: bottomOpacity }}>
         {favoriteEnabled && (
           <div className="flex flex-col gap-1">
             <div className="flex min-h-8 items-center gap-2">
@@ -277,7 +278,7 @@ const SwipeCard = forwardRef(function SwipeCard({
             </>
           )}
         </div>
-      </div>
+      </motion.div>
 
       <Drawer open={dialogOpen !== null} onOpenChange={open => !open && setDialogOpen(null)}>
         <DrawerContent className="p-0">
@@ -372,6 +373,9 @@ export default function SuggestionSlider({
   )
 
   const x = useMotionValue(0)
+  const behindScale = useTransform(x, [-300, 0], [0.97, 1])
+  const behindOpacity = useTransform(x, [-120, 0], [1, 0])
+  const bottomOpacity = useTransform(x, [-30, 0], [0, 1])
   const cardRef = useRef(null)
   const indexRef = useRef(index)
   indexRef.current = index
@@ -519,17 +523,20 @@ export default function SuggestionSlider({
       <div className="relative grid grid-cols-1 grid-rows-1 place-items-start select-none">
         {/* Card behind — mirrors front stack height (statement card + spacer for controls below) */}
         <motion.div
-          className="col-start-1 row-start-1 z-0 flex w-full max-w-full flex-col gap-4 overflow-hidden"
+          className="col-start-1 row-start-1 z-0 flex w-full max-w-full flex-col gap-4"
           style={{
-            scale: useTransform(x, [-300, 0], [0.97, 1]),
+            scale: behindScale,
             transformOrigin: 'bottom',
           }}
         >
-          <div className="rounded-2xl border border-stone-100/90 bg-white/90 px-6 py-6 shadow-sm shadow-stone-900/5">
-            <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-14">
+          <motion.div
+            className="rounded-2xl border border-stone-100/90 bg-white/90 px-6 py-6 shadow-sm shadow-stone-900/5 overflow-hidden"
+            style={{ opacity: behindOpacity }}
+          >
+            <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-14 min-h-20">
               {options[behindIndex]}
             </p>
-          </div>
+          </motion.div>
           <div
             className={cn(
               'pointer-events-none shrink-0 border-t border-transparent pt-0',
@@ -557,10 +564,11 @@ export default function SuggestionSlider({
           favoriteEnabled={Boolean(sessionId)}
           favoriteSaving={favoriteSaving}
           favoriteError={favoriteError}
+          bottomOpacity={bottomOpacity}
         />
       </div>
 
-      <div className="flex items-center justify-between mt-4 px-1">
+      <motion.div style={{ opacity: bottomOpacity }} className="flex items-center justify-between mt-4 px-1">
         <button
           type="button"
           onClick={goPrev}
@@ -584,7 +592,7 @@ export default function SuggestionSlider({
         >
           Next →
         </button>
-      </div>
+      </motion.div>
     </div>
   )
 }
