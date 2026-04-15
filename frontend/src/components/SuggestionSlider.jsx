@@ -387,7 +387,7 @@ export default function SuggestionSlider({
     <div className="w-full">
       {showPrimaryHeading ? (
         <header className="mb-2 text-left">
-          <p className="text-sm font-semibold text-stone-500 tracking-tight">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400">
             Pick what feels right
           </p>
         </header>
