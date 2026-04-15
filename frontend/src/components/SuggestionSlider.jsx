@@ -173,25 +173,29 @@ const SwipeCard = forwardRef(function SwipeCard({
         style={{ x, rotate, touchAction: 'none' }}
         className="relative w-full"
       >
+        {/* Gradient border wrapper */}
         <div
           {...bind()}
-          className="flex w-full touch-none flex-col rounded-2xl border border-stone-100/90 bg-white/95 px-6 py-6 shadow-sm shadow-stone-900/5"
+          className="touch-none rounded-2xl p-px shadow-sm shadow-stone-900/5"
+          style={{ background: 'linear-gradient(135deg, #a78bfa 0%, #c4b5fd 12%, #fbcfe8 26%, #fda4af 36%, #fdba74 44%, #fca5a5 51%, #86efac 62%, #7dd3fc 74%, #818cf8 84%, #a78bfa 100%)' }}
         >
-          {total > 1 && (
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">
-              Statement {cardIndex + 1} of {total}
+          <div className="relative flex w-full flex-col overflow-hidden rounded-[15px] bg-white px-6 py-6">
+{total > 1 && (
+              <p className="relative mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">
+                Statement {cardIndex + 1} of {total}
+              </p>
+            )}
+            <p className="relative text-stone-800 text-lg font-semibold leading-relaxed text-pretty pr-14 min-h-20">
+              {option}
             </p>
-          )}
-          <p className="text-stone-800 text-lg font-semibold leading-relaxed text-pretty pr-14 min-h-20">
-            {option}
-          </p>
-          <motion.p
-            style={{ opacity: swipeHintOpacity }}
-            className="pointer-events-none mt-3 self-end text-[11px] font-medium text-stone-300 select-none sm:hidden"
-            aria-hidden
-          >
-            swipe ←
-          </motion.p>
+            <motion.p
+              style={{ opacity: swipeHintOpacity }}
+              className="relative pointer-events-none mt-3 self-end text-[11px] font-medium text-stone-300 select-none sm:hidden"
+              aria-hidden
+            >
+              swipe ←
+            </motion.p>
+          </div>
         </div>
 
         <motion.div style={{ opacity: nextLabel }} className="pointer-events-none absolute right-4 top-4 rounded-md bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
@@ -356,6 +360,7 @@ export default function SuggestionSlider({
         return next
       })
       setVizStates(prev => prev.map((s, i) => i === cardIndex ? 'done' : s))
+      setDialogOpen('viz')
     } catch {
       setVizStates(prev => prev.map((s, i) => i === cardIndex ? 'error' : s))
     }
@@ -372,6 +377,7 @@ export default function SuggestionSlider({
         return next
       })
       setAffStates(prev => prev.map((s, i) => i === cardIndex ? 'done' : s))
+      setDialogOpen('aff')
     } catch {
       setAffStates(prev => prev.map((s, i) => i === cardIndex ? 'error' : s))
     }
@@ -380,8 +386,8 @@ export default function SuggestionSlider({
   return (
     <div className="w-full">
       {showPrimaryHeading ? (
-        <header className="mb-6 text-left">
-            <p className="text-sm font-medium text-stone-400 tracking-wide">
+        <header className="mb-2 text-left">
+          <p className="text-sm font-semibold text-stone-500 tracking-tight">
             Pick what feels right
           </p>
         </header>
@@ -401,7 +407,7 @@ export default function SuggestionSlider({
           }}
         >
           <motion.div
-            className="rounded-2xl border border-stone-100/90 bg-white/90 px-6 py-6 shadow-sm shadow-stone-900/5 overflow-hidden"
+            className="rounded-2xl border border-stone-100/80 bg-white px-6 py-6 shadow-sm shadow-stone-900/5 overflow-hidden"
             style={{ opacity: behindOpacity }}
           >
             <p className="text-stone-800 text-lg font-semibold leading-relaxed text-pretty pr-14 min-h-20">
