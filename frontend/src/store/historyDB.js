@@ -102,7 +102,7 @@ export async function findInHistory(wish) {
     req.onsuccess = e => {
       const normalized = wish.trim().toLowerCase()
       const match = e.target.result.find(
-        entry => entry.wish.trim().toLowerCase() === normalized
+        entry => entry.wish?.trim().toLowerCase() === normalized
       )
       resolve(match ?? null)
     }

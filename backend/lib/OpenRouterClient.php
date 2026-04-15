@@ -30,7 +30,7 @@ class OpenRouterClient
             ],
             'response_format' => ['type' => 'json_object'],
             'thinking' => ['type' => 'disabled'],
-            'max_tokens' => 4096,
+            'max_tokens' => 8192,
         ]);
 
         $ch = curl_init($this->baseUrl);

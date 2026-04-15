@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { getWishResult, clearWishResult, setWishResult } from '../store/wishResult.js'
 import OriginalWishCard from '../components/OriginalWishCard.jsx'
@@ -9,6 +10,14 @@ import { updateVisualizationsInHistory, updateAffirmationsInHistory } from '../s
 export default function ResultPage() {
   const navigate = useNavigate()
   const result = getWishResult()
+
+  useEffect(() => {
+    if (!result?.data) {
+      navigate({ to: '/' })
+    }
+  }, [result, navigate])
+
+  if (!result?.data) return null
 
   const coreWishes = result.data.map(item => item.wish)
   const isSingle = result.data.length === 1
