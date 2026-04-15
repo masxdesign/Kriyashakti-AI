@@ -3,7 +3,7 @@ import { motion, useMotionValue, useTransform, useMotionValueEvent, animate } fr
 import { useDrag } from '@use-gesture/react'
 import { generateVisualization, generateAffirmation } from '../api/processWish.js'
 import { cn } from '@/lib/utils'
-import { makeFavoriteDedupeKey, isFavoriteDedupeKey, toggleFavorite } from '../store/historyDB.js'
+import { makeFavoriteDedupeKey, isFavoriteDedupeKey, toggleFavorite, onFavoritesChange } from '../store/historyDB.js'
 import {
   Drawer,
   DrawerContent,
@@ -280,16 +280,17 @@ export default function SuggestionSlider({
       return
     }
     let cancelled = false
-    const key = makeFavoriteDedupeKey(sessionId, wishIndexNum, index)
-    isFavoriteDedupeKey(key)
-      .then(ok => {
-        if (!cancelled) setFavorited(ok)
-      })
-      .catch(() => {
-        if (!cancelled) setFavorited(false)
-      })
+    function checkFav() {
+      const key = makeFavoriteDedupeKey(sessionId, wishIndexNum, index)
+      isFavoriteDedupeKey(key)
+        .then(ok => { if (!cancelled) setFavorited(ok) })
+        .catch(() => { if (!cancelled) setFavorited(false) })
+    }
+    checkFav()
+    const unsub = onFavoritesChange(checkFav)
     return () => {
       cancelled = true
+      unsub()
     }
   }, [sessionId, wishIndexNum, index])
 

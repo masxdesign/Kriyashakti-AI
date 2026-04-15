@@ -61,7 +61,7 @@ export default function AppBottomNav() {
         </div>
       </nav>
 
-      <LibraryPanel open={libraryOpen} onOpenChange={setLibraryOpen} defaultTab="history" />
+      <LibraryPanel open={libraryOpen} onOpenChange={setLibraryOpen} defaultTab="favorites" />
     </>
   )
 }

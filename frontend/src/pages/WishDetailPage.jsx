@@ -1,5 +1,5 @@
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
-import { useWishResult, setWishResult } from '../store/wishResult.js'
+import { useWishResult, setWishResult, clearWishResult } from '../store/wishResult.js'
 import SuggestionSlider from '../components/SuggestionSlider.jsx'
 import { updateVisualizationsInHistory, updateAffirmationsInHistory } from '../store/historyDB.js'
 
@@ -38,6 +38,7 @@ export default function WishDetailPage() {
 
   function handleStartOver() {
     navigate({ to: '/' })
+    clearWishResult()
   }
 
   return (

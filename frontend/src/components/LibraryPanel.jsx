@@ -201,7 +201,7 @@ function FavoritesTab({ onClose }) {
   )
 }
 
-export default function LibraryPanel({ open, onOpenChange, defaultTab = 'history' }) {
+export default function LibraryPanel({ open, onOpenChange, defaultTab = 'favorites' }) {
   const [tab, setTab] = useState(defaultTab)
 
   useEffect(() => {
@@ -227,11 +227,11 @@ export default function LibraryPanel({ open, onOpenChange, defaultTab = 'history
 
       {/* Tabs */}
       <div className="flex gap-0 px-5 mt-4 shrink-0 border-b border-stone-100">
-        <button type="button" className={tabClass(tab === 'history')} onClick={() => setTab('history')}>
-          History
-        </button>
         <button type="button" className={tabClass(tab === 'favorites')} onClick={() => setTab('favorites')}>
           Saved
+        </button>
+        <button type="button" className={tabClass(tab === 'history')} onClick={() => setTab('history')}>
+          History
         </button>
       </div>
 

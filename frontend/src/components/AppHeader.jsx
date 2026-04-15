@@ -46,7 +46,7 @@ export default function AppHeader() {
   const LibraryButton = ({ active }) => (
     <button
       type="button"
-      onClick={() => openLibrary('history')}
+      onClick={() => openLibrary('favorites')}
       aria-label="Open library"
       className={btnClass(active ? 'text-stone-900' : 'text-stone-400 hover:text-stone-700')}
     >
@@ -73,7 +73,7 @@ export default function AppHeader() {
                   const sid = result?.sessionId
                   const isMulti = (result?.data?.length ?? 1) > 1
                   if (isMulti && sid) navigate({ to: '/result/$sessionId', params: { sessionId: sid } })
-                  else { clearWishResult(); navigate({ to: '/' }) }
+                  else { navigate({ to: '/' }); clearWishResult() }
                 }}
                 className="absolute left-2 top-1/2 z-10 flex -translate-y-1/2 items-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-sm font-semibold text-primary transition-colors duration-200 hover:opacity-85 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:left-3"
                 aria-label="Back"
@@ -95,7 +95,7 @@ export default function AppHeader() {
             <>
               <button
                 type="button"
-                onClick={() => { clearWishResult(); navigate({ to: '/' }) }}
+                onClick={() => { navigate({ to: '/' }); clearWishResult() }}
                 className="absolute left-2 top-1/2 z-10 flex -translate-y-1/2 items-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-sm font-semibold text-primary transition-colors duration-200 hover:opacity-85 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:left-3"
                 aria-label="Start over"
               >

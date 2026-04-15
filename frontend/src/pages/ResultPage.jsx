@@ -22,8 +22,8 @@ export default function ResultPage() {
   const isSingle = result.data.length === 1
 
   function handleStartOver() {
-    clearWishResult()
     navigate({ to: '/' })
+    clearWishResult()
   }
 
   async function handleVisualizationsGenerated(viz) {
