@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
+import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useNavigate } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { ensureSessionIdForEntry, getAllHistory, deleteFromHistory, getAllFavorites, deleteFavorite, getHistoryBySessionId } from '../store/historyDB.js'
@@ -201,12 +202,10 @@ function FavoritesTab({ onClose }) {
   )
 }
 
-export default function LibraryPanel({ open, onOpenChange, defaultTab = 'favorites' }) {
+function LibraryContent({ onClose, defaultTab = 'favorites', CloseButton }) {
   const [tab, setTab] = useState(defaultTab)
 
-  useEffect(() => {
-    if (open) setTab(defaultTab)
-  }, [open, defaultTab])
+  useEffect(() => { setTab(defaultTab) }, [defaultTab])
 
   const tabClass = active =>
     cn(
@@ -214,18 +213,12 @@ export default function LibraryPanel({ open, onOpenChange, defaultTab = 'favorit
       active ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400 hover:text-stone-600 border-b-2 border-transparent',
     )
 
-  const content = (
+  return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Header */}
       <div className="flex items-center justify-between px-5 pt-5 pb-0 shrink-0">
         <h2 className="text-base font-bold tracking-tight text-stone-900">Library</h2>
-        <DialogPrimitive.Close className="flex h-7 w-7 items-center justify-center rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40">
-          <CloseIcon className="h-3.5 w-3.5" />
-          <span className="sr-only">Close</span>
-        </DialogPrimitive.Close>
+        {CloseButton}
       </div>
-
-      {/* Tabs */}
       <div className="flex gap-0 px-5 mt-4 shrink-0 border-b border-stone-100">
         <button type="button" className={tabClass(tab === 'favorites')} onClick={() => setTab('favorites')}>
           Saved
@@ -234,38 +227,95 @@ export default function LibraryPanel({ open, onOpenChange, defaultTab = 'favorit
           History
         </button>
       </div>
-
-      {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto min-h-0 pt-3">
         {tab === 'history'
-          ? <HistoryTab onClose={() => onOpenChange(false)} />
-          : <FavoritesTab onClose={() => onOpenChange(false)} />
+          ? <HistoryTab onClose={onClose} />
+          : <FavoritesTab onClose={onClose} />
         }
       </div>
     </div>
   )
+}
 
+function IconLibrary({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    </svg>
+  )
+}
+
+/** Desktop: Popover anchored to trigger */
+export function LibraryPopover({ active = false, defaultTab = 'favorites' }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
+      <PopoverPrimitive.Trigger
+        className={cn(
+          'flex h-8 w-8 items-center justify-center rounded-md transition-colors duration-200',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2',
+          active || open ? 'text-stone-900' : 'text-stone-400 hover:text-stone-700',
+        )}
+        aria-label="Open library"
+      >
+        <IconLibrary className="h-[1.1rem] w-[1.1rem]" />
+      </PopoverPrimitive.Trigger>
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Content
+          align="end"
+          sideOffset={8}
+          className={cn(
+            'z-50 w-80 rounded-2xl border border-stone-200/80 bg-white shadow-xl shadow-stone-900/10 outline-none',
+            'flex flex-col max-h-[min(32rem,80vh)]',
+            'data-[state=open]:animate-in data-[state=closed]:animate-out',
+            'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+            'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+            'data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2',
+            'duration-150',
+          )}
+        >
+          <LibraryContent
+            onClose={() => setOpen(false)}
+            defaultTab={defaultTab}
+            CloseButton={
+              <PopoverPrimitive.Close className="flex h-7 w-7 items-center justify-center rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40">
+                <CloseIcon className="h-3.5 w-3.5" />
+                <span className="sr-only">Close</span>
+              </PopoverPrimitive.Close>
+            }
+          />
+        </PopoverPrimitive.Content>
+      </PopoverPrimitive.Portal>
+    </PopoverPrimitive.Root>
+  )
+}
+
+/** Mobile: bottom sheet dialog */
+export default function LibraryPanel({ open, onOpenChange, defaultTab = 'favorites' }) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        {/* Mobile: bottom sheet */}
         <DialogPrimitive.Content className={cn(
           'fixed z-50 bg-white outline-none',
-          // Mobile: bottom sheet
           'inset-x-0 bottom-0 rounded-t-2xl max-h-[88vh] flex flex-col',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',
           'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
           'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
           'duration-250',
-          // Desktop: right panel
-          'sm:inset-x-auto sm:inset-y-0 sm:right-0 sm:left-auto sm:w-88 sm:rounded-none sm:rounded-l-2xl sm:max-h-full sm:h-full sm:border-l sm:border-stone-200/70 sm:shadow-xl sm:shadow-stone-900/10',
-          'sm:data-[state=closed]:slide-out-to-right sm:data-[state=open]:slide-in-from-right',
-          'sm:data-[state=closed]:slide-out-to-bottom-0 sm:data-[state=open]:slide-in-from-bottom-0',
         )}>
-          {/* Mobile drag handle */}
-          <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-stone-200 sm:hidden" aria-hidden />
-          {content}
+          <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-stone-200" aria-hidden />
+          <LibraryContent
+            onClose={() => onOpenChange(false)}
+            defaultTab={defaultTab}
+            CloseButton={
+              <DialogPrimitive.Close className="flex h-7 w-7 items-center justify-center rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40">
+                <CloseIcon className="h-3.5 w-3.5" />
+                <span className="sr-only">Close</span>
+              </DialogPrimitive.Close>
+            }
+          />
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
