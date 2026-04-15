@@ -224,6 +224,7 @@ export default function SuggestionSlider({
   /** Open the slider at this option index (e.g. from Favorites deep link). */
   initialOptionIndex,
   onStartOver,
+  onBackToIntentions,
 }) {
   const total = options.length
   const [index, setIndex] = useState(() =>
@@ -551,6 +552,16 @@ export default function SuggestionSlider({
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
             How to use this
           </button>
+          {onBackToIntentions && (
+            <button
+              type="button"
+              onClick={onBackToIntentions}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-stone-200/70 bg-transparent text-sm font-medium text-stone-400 transition-all duration-200 hover:text-stone-600 hover:border-stone-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden><path d="M15 18l-6-6 6-6" /></svg>
+              Back to intentions
+            </button>
+          )}
           {onStartOver && (
             <button
               type="button"

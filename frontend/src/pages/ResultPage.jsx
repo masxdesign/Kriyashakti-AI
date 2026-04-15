@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { getWishResult, clearWishResult, setWishResult } from '../store/wishResult.js'
+import { useWishResult, clearWishResult, setWishResult } from '../store/wishResult.js'
 import OriginalWishCard from '../components/OriginalWishCard.jsx'
 import CoreIntentionsChips from '../components/CoreIntentionsChips.jsx'
 import SuggestionSlider from '../components/SuggestionSlider.jsx'
@@ -8,7 +8,7 @@ import { updateVisualizationsInHistory, updateAffirmationsInHistory } from '../s
 
 export default function ResultPage() {
   const navigate = useNavigate()
-  const result = getWishResult()
+  const result = useWishResult()
 
   useEffect(() => {
     if (!result?.data) {
@@ -62,14 +62,19 @@ export default function ResultPage() {
         </>
       ) : (
         <>
-          <div className="page-heading w-full max-w-2xl !text-left">
-            <h1 className="page-title !text-left">Your Kriyashakti</h1>
-            <p className="page-lead !mx-0 text-sm !text-left">
-              Tap a wish below to open its statements and practice notes.
-            </p>
+          <div className="w-full max-w-2xl flex flex-col gap-6">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-1">Your Kriyashakti</p>
+              <h1 className="text-2xl font-bold tracking-tight text-stone-900 leading-snug text-balance">
+                Your wish has {coreWishes.length} core intentions
+              </h1>
+              <p className="mt-2 text-sm text-stone-500 leading-relaxed text-pretty">
+                Combined wording is harder to hold as a single image. Each intention gets its own Kriyashakti so the energy stays focused.
+              </p>
+            </div>
+            <OriginalWishCard wish={result.wish} variant="secondary" />
+            <CoreIntentionsChips wishes={coreWishes} sessionId={result.sessionId} />
           </div>
-          <OriginalWishCard wish={result.wish} variant="secondary" />
-          <CoreIntentionsChips wishes={coreWishes} sessionId={result.sessionId} />
         </>
       )}
 

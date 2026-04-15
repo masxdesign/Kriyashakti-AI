@@ -17,9 +17,9 @@ export function useWishDetailHeaderMeta() {
   if (!m) return null
   const idx = Number(m[1])
   const result = getWishResult()
-  const item = result?.data?.[idx]
-  if (!item) return { title: null, index: idx }
-  return { title: item.wish, index: idx }
+  const isMulti = (result?.data?.length ?? 1) > 1
+  const title = isMulti ? `Intention ${idx + 1}` : 'Your Kriyashakti'
+  return { title, index: idx }
 }
 
 /** Multi-wish overview /result/:sessionId — show back + centered context (not …/wish/…). */
@@ -29,7 +29,6 @@ export function useResultOverviewHeaderMeta() {
   if (!/^\/result\/[^/]+$/.test(base)) return null
   const result = getWishResult()
   if (!result) return null
-  const raw = (result.wish ?? '').trim()
-  const title = raw.length > 52 ? `${raw.slice(0, 52)}…` : raw || 'Your Kriyashakti'
-  return { title }
+  const isMulti = (result.data?.length ?? 1) > 1
+  return { title: isMulti ? 'Core intentions' : 'Your Kriyashakti' }
 }
