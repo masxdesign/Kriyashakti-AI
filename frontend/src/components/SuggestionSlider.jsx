@@ -29,7 +29,7 @@ const SwipeCard = forwardRef(function SwipeCard({
   onSwipe, x, className,
   favorited, onToggleFavorite, favoriteEnabled,
   favoriteSaving, favoriteError,
-  bottomOpacity, onPrev, onNext,
+  bottomOpacity, onPrev, onNext, cardIndex, total,
 }, ref) {
   const [dialogOpen, setDialogOpen] = useState(null)
 
@@ -53,6 +53,26 @@ const SwipeCard = forwardRef(function SwipeCard({
     x.set(0)
   }, [option])
 
+  // Safety net: if pointer is released anywhere outside the card, snap back
+  useEffect(() => {
+    function onPointerUp() {
+      if (!flying.current && x.get() !== 0) {
+        stopCardAnim()
+        const anim = animate(x, 0, { type: 'spring', stiffness: 300, damping: 20 })
+        cardAnimRef.current = anim
+        anim.then(() => {
+          if (cardAnimRef.current === anim) cardAnimRef.current = null
+        })
+      }
+    }
+    window.addEventListener('touchend', onPointerUp)
+    window.addEventListener('touchcancel', onPointerUp)
+    return () => {
+      window.removeEventListener('touchend', onPointerUp)
+      window.removeEventListener('touchcancel', onPointerUp)
+    }
+  }, [])
+
   useImperativeHandle(ref, () => ({
     flyOut(direction) {
       if (flying.current) return
@@ -61,29 +81,27 @@ const SwipeCard = forwardRef(function SwipeCard({
       const flyTo = direction === 'right' ? 500 : -500
       const anim = animate(x, flyTo, { duration: 0.3, ease: 'easeOut' })
       cardAnimRef.current = anim
-      anim
-        .then(() => {
-          onSwipe(direction)
-        })
-        .finally(() => {
-          flying.current = false
-          if (cardAnimRef.current === anim) cardAnimRef.current = null
-        })
+      anim.then(() => {
+        onSwipe(direction)
+        flying.current = false
+        if (cardAnimRef.current === anim) cardAnimRef.current = null
+      })
     },
   }))
 
-  const bind = useDrag(({ down, movement: [mx], velocity: [vx], canceled, event, cancel }) => {
-    if (canceled) {
+  const bind = useDrag(({ down, movement: [mx], velocity: [vx], canceled, event }) => {
+    if (event?.pointerType === 'mouse') return
+    if (flying.current) return
+
+    if (canceled || (!down && mx === 0)) {
       stopCardAnim()
       const anim = animate(x, 0, { type: 'spring', stiffness: 300, damping: 20 })
       cardAnimRef.current = anim
-      anim.finally(() => {
+      anim.then(() => {
         if (cardAnimRef.current === anim) cardAnimRef.current = null
       })
       return
     }
-
-    if (flying.current && !down) return
 
     if (down) {
       stopCardAnim()
@@ -96,22 +114,19 @@ const SwipeCard = forwardRef(function SwipeCard({
       flying.current = true
       const anim = animate(x, -500, { duration: 0.3, ease: 'easeOut' })
       cardAnimRef.current = anim
-      anim
-        .then(() => {
-          onSwipe('left')
-        })
-        .finally(() => {
-          flying.current = false
-          if (cardAnimRef.current === anim) cardAnimRef.current = null
-        })
+      anim.then(() => {
+        onSwipe('left')
+        flying.current = false
+        if (cardAnimRef.current === anim) cardAnimRef.current = null
+      })
     } else {
       const anim = animate(x, 0, { type: 'spring', stiffness: 300, damping: 20 })
       cardAnimRef.current = anim
-      anim.finally(() => {
+      anim.then(() => {
         if (cardAnimRef.current === anim) cardAnimRef.current = null
       })
     }
-  }, { filterTaps: true, pointer: { capture: true } })
+  }, { filterTaps: true, pointer: { touch: true } })
 
   return (
     <div
@@ -128,14 +143,19 @@ const SwipeCard = forwardRef(function SwipeCard({
       >
         <div
           {...bind()}
-          className="flex w-full cursor-grab touch-none flex-col rounded-2xl border border-stone-100/90 bg-white/95 px-6 py-6 shadow-sm shadow-stone-900/5 active:cursor-grabbing"
+          className="flex w-full touch-none flex-col rounded-2xl border border-stone-100/90 bg-white/95 px-6 py-6 shadow-sm shadow-stone-900/5"
         >
+          {total > 1 && (
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400">
+              Statement {cardIndex + 1} of {total}
+            </p>
+          )}
           <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-14 min-h-20">
             {option}
           </p>
           <motion.p
             style={{ opacity: swipeHintOpacity }}
-            className="pointer-events-none mt-3 self-end text-[11px] font-medium text-stone-300 select-none"
+            className="pointer-events-none mt-3 self-end text-[11px] font-medium text-stone-300 select-none sm:hidden"
             aria-hidden
           >
             swipe ←
@@ -476,16 +496,13 @@ export default function SuggestionSlider({
           <h1 className="text-2xl font-bold tracking-tight text-stone-900 text-balance text-pretty sm:text-[1.75rem]">
             Pick what feels right
           </h1>
-          <p className="mt-2 text-sm font-medium text-stone-500">
-            Statement {index + 1} of {total}
-          </p>
-          <div className="mt-3">
+          <div className="mt-2">
             <HowToUse wish={rootWish} />
           </div>
         </header>
       ) : (
         <p className="text-xs font-medium tracking-[0.08em] text-primary/80 uppercase mb-3">
-          Version {index + 1} of {total} — pick what feels right
+          Pick what feels right
         </p>
       )}
 
@@ -536,6 +553,8 @@ export default function SuggestionSlider({
           bottomOpacity={bottomOpacity}
           onPrev={goPrev}
           onNext={goNext}
+          cardIndex={index}
+          total={total}
         />
       </div>
     </div>
