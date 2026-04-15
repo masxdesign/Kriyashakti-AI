@@ -1,5 +1,4 @@
 import { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react'
-import HowToUse from './HowToUse.jsx'
 import { motion, useMotionValue, useTransform, useMotionValueEvent, animate } from 'motion/react'
 import { useDrag } from '@use-gesture/react'
 import { generateVisualization, generateAffirmation } from '../api/processWish.js'
@@ -12,26 +11,60 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from '@/components/ui/drawer'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 640px)').matches)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 640px)')
+    const handler = e => setIsDesktop(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return isDesktop
+}
 
-function IconStar({ className, filled }) {
+function ResponsiveOverlay({ open, onOpenChange, title, description, children }) {
+  const isDesktop = useIsDesktop()
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold tracking-tight text-stone-900">{title}</DialogTitle>
+            {description && <DialogDescription className="sr-only">{description}</DialogDescription>}
+          </DialogHeader>
+          {children}
+        </DialogContent>
+      </Dialog>
+    )
+  }
   return (
-    <svg className={className} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="p-0">
+        <DrawerHeader className="border-b border-stone-100/80 px-6 pb-3 pr-14 pt-1">
+          <DrawerTitle className="text-base font-semibold tracking-tight text-stone-900">{title}</DrawerTitle>
+          {description && <DrawerDescription className="sr-only">{description}</DrawerDescription>}
+        </DrawerHeader>
+        {children}
+      </DrawerContent>
+    </Drawer>
   )
 }
 
 
+
 const SwipeCard = forwardRef(function SwipeCard({
-  option, visualization, vizState, onGenerateViz,
-  affirmation, affState, onGenerateAff,
+  option,
   onSwipe, x, className,
-  favorited, onToggleFavorite, favoriteEnabled,
-  favoriteSaving, favoriteError,
-  bottomOpacity, onPrev, onNext, cardIndex, total,
+  cardIndex, total,
 }, ref) {
-  const [dialogOpen, setDialogOpen] = useState(null)
 
   const rotate = useTransform(x, [-280, 0], [-20, 0])
   const swipeHintOpacity = useTransform(x, [-20, 0], [0, 1])
@@ -48,7 +81,6 @@ const SwipeCard = forwardRef(function SwipeCard({
   }
 
   useEffect(() => {
-    setDialogOpen(null)
     stopCardAnim()
     x.set(0)
   }, [option])
@@ -150,7 +182,7 @@ const SwipeCard = forwardRef(function SwipeCard({
               Statement {cardIndex + 1} of {total}
             </p>
           )}
-          <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-14 min-h-20">
+          <p className="text-stone-800 text-lg font-semibold leading-relaxed text-pretty pr-14 min-h-20">
             {option}
           </p>
           <motion.p
@@ -167,154 +199,7 @@ const SwipeCard = forwardRef(function SwipeCard({
         </motion.div>
       </motion.div>
 
-      <motion.div className="flex flex-col gap-2 px-0.5" style={{ opacity: bottomOpacity }}>
-        {/* Single row: favorite + generate buttons */}
-        <div className="flex min-h-8 flex-nowrap items-center gap-2 border-t border-stone-200/90 pt-3 justify-between">
-          {favoriteEnabled && (
-            <>
-              <button
-                type="button"
-                disabled={favoriteSaving}
-                onClick={onToggleFavorite}
-                className={cn(
-                  'shrink-0 rounded-lg p-1.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-50',
-                  favorited
-                    ? 'text-amber-500 ring-2 ring-amber-400/40 hover:text-amber-600'
-                    : 'text-stone-300 hover:text-amber-500',
-                )}
-                aria-pressed={favorited}
-                aria-busy={favoriteSaving}
-                aria-label={favorited ? 'Remove from favorites' : 'Save to favorites'}
-              >
-                <IconStar className="h-5 w-5" filled={favorited} />
-              </button>
-              <span className="h-4 w-px shrink-0 bg-stone-200/90" aria-hidden />
-            </>
-          )}
 
-          <div className="flex min-w-0 items-center gap-2">
-            {vizState === 'loading' ? (
-              <span className="text-xs text-stone-500">Shaping visualization…</span>
-            ) : vizState === 'error' ? (
-              <button type="button" onClick={onGenerateViz} className="text-xs text-red-600 underline-offset-2 hover:underline hover:text-red-800 transition-colors">
-                Could not generate. Try again
-              </button>
-            ) : visualization ? (
-              <button type="button" onClick={() => setDialogOpen('viz')} className="inline-flex h-8 items-center rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
-                View visualization
-              </button>
-            ) : (
-              <button type="button" onClick={onGenerateViz} className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
-                Generate visualization
-              </button>
-            )}
-
-            {visualization && (
-              <>
-                <span className="h-4 w-px shrink-0 bg-stone-200/90" aria-hidden />
-                {affState === 'loading' ? (
-                  <span className="text-xs text-stone-500">Shaping affirmation…</span>
-                ) : affState === 'error' ? (
-                  <button type="button" onClick={onGenerateAff} className="text-xs text-red-600 underline-offset-2 hover:underline hover:text-red-800 transition-colors">
-                    Could not generate. Try again
-                  </button>
-                ) : affirmation ? (
-                  <button type="button" onClick={() => setDialogOpen('aff')} className="inline-flex h-8 items-center rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
-                    View affirmation
-                  </button>
-                ) : (
-                  <button type="button" onClick={onGenerateAff} className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
-                    Generate affirmation
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-
-          <div className="flex shrink-0 items-center gap-1.5 ml-auto">
-            <button
-              type="button"
-              onClick={onPrev}
-              title="Previous statement"
-              aria-label="Previous statement"
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-stone-200/90 bg-white shadow-sm shadow-stone-900/5 text-stone-500 transition-all duration-200 hover:border-stone-300 hover:text-stone-800 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden>
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={onNext}
-              title="Next statement"
-              aria-label="Next statement"
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-stone-200/90 bg-white shadow-sm shadow-stone-900/5 text-stone-500 transition-all duration-200 hover:border-stone-300 hover:text-stone-800 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden>
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {favoriteError ? (
-          <p className="text-xs text-red-600" role="alert">
-            Could not update favorites. Check that browser storage is allowed, then try again.
-          </p>
-        ) : favorited && !favoriteSaving ? (
-          <span className="text-xs font-semibold text-amber-600">Saved on this device</span>
-        ) : favoriteSaving ? (
-          <span className="text-xs text-stone-500">Saving…</span>
-        ) : null}
-      </motion.div>
-
-      <Drawer open={dialogOpen !== null} onOpenChange={open => !open && setDialogOpen(null)}>
-        <DrawerContent className="p-0">
-          <DrawerHeader className="border-b border-stone-100/80 px-6 pb-3 pr-14 pt-1">
-            <DrawerTitle className="text-base font-semibold tracking-tight text-stone-900">
-              {dialogOpen === 'viz' ? 'Visualization' : 'Affirmation'}
-            </DrawerTitle>
-            <DrawerDescription className="sr-only">
-              {dialogOpen === 'viz'
-                ? 'Mental picture for your practice, with your Kriyashakti line as context.'
-                : 'Affirmation lines for your practice, with your Kriyashakti line as context.'}
-            </DrawerDescription>
-          </DrawerHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <div className="flex flex-col gap-8 px-6 pb-8 pt-6">
-              {dialogOpen === 'viz' && visualization && (
-                <div className="text-pretty">
-                  <p className="text-[1.0625rem] sm:text-lg font-normal leading-[1.65] tracking-[-0.02em] text-stone-900">
-                    {visualization}
-                  </p>
-                </div>
-              )}
-              {dialogOpen === 'aff' && affirmation && (
-                <div className="flex flex-col gap-5 text-pretty">
-                  {affirmation.split('\n').map((line, i) => (
-                    <p
-                      key={i}
-                      className="text-[1.0625rem] sm:text-lg font-normal leading-[1.65] tracking-[-0.015em] text-stone-800 italic"
-                    >
-                      {line}
-                    </p>
-                  ))}
-                </div>
-              )}
-
-              <div className="border-t border-stone-200/90 pt-6">
-                <div className="flex gap-3.5">
-                  <div className="mt-0.5 w-1 shrink-0 self-stretch min-h-[2.75rem] rounded-full bg-primary/25" aria-hidden />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/70">Kriyashakti</p>
-                    <p className="mt-2 text-sm font-medium leading-relaxed text-stone-500">{option}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
     </div>
   )
 })
@@ -334,6 +219,7 @@ export default function SuggestionSlider({
   rootWish = '',
   /** Open the slider at this option index (e.g. from Favorites deep link). */
   initialOptionIndex,
+  onStartOver,
 }) {
   const total = options.length
   const [index, setIndex] = useState(() =>
@@ -341,6 +227,8 @@ export default function SuggestionSlider({
       ? initialOptionIndex
       : 0,
   )
+  const [dialogOpen, setDialogOpen] = useState(null)
+  const [howToUseOpen, setHowToUseOpen] = useState(false)
   const [favorited, setFavorited] = useState(false)
   const [favoriteSaving, setFavoriteSaving] = useState(false)
   const [favoriteError, setFavoriteError] = useState(false)
@@ -363,7 +251,6 @@ export default function SuggestionSlider({
   const x = useMotionValue(0)
   const behindScale = useTransform(x, [-300, 0], [0.97, 1])
   const behindOpacity = useTransform(x, [-120, 0], [1, 0])
-  const bottomOpacity = useTransform(x, [-30, 0], [0, 1])
   const cardRef = useRef(null)
   const indexRef = useRef(index)
   indexRef.current = index
@@ -439,6 +326,7 @@ export default function SuggestionSlider({
   })
 
   function handleSwipe(direction) {
+    setDialogOpen(null)
     x.set(0)
     setIndex(i => {
       const next = direction === 'left' ? (i + 1) % total : (i - 1 + total) % total
@@ -492,13 +380,10 @@ export default function SuggestionSlider({
   return (
     <div className="w-full">
       {showPrimaryHeading ? (
-        <header className="mb-5 text-left">
-          <h1 className="text-2xl font-bold tracking-tight text-stone-900 text-balance text-pretty sm:text-[1.75rem]">
+        <header className="mb-6 text-left">
+            <p className="text-sm font-medium text-stone-400 tracking-wide">
             Pick what feels right
-          </h1>
-          <div className="mt-2">
-            <HowToUse wish={rootWish} />
-          </div>
+          </p>
         </header>
       ) : (
         <p className="text-xs font-medium tracking-[0.08em] text-primary/80 uppercase mb-3">
@@ -519,17 +404,10 @@ export default function SuggestionSlider({
             className="rounded-2xl border border-stone-100/90 bg-white/90 px-6 py-6 shadow-sm shadow-stone-900/5 overflow-hidden"
             style={{ opacity: behindOpacity }}
           >
-            <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-14 min-h-20">
+            <p className="text-stone-800 text-lg font-semibold leading-relaxed text-pretty pr-14 min-h-20">
               {options[behindIndex]}
             </p>
           </motion.div>
-          <div
-            className={cn(
-              'pointer-events-none shrink-0 border-t border-transparent pt-0',
-              sessionId ? 'min-h-[6.75rem]' : 'min-h-[4.5rem]',
-            )}
-            aria-hidden
-          />
         </motion.div>
 
         {/* Top draggable card */}
@@ -537,26 +415,204 @@ export default function SuggestionSlider({
           ref={cardRef}
           className="col-start-1 row-start-1"
           option={options[index]}
-          visualization={visualizations[index]}
-          vizState={vizStates[index]}
-          onGenerateViz={() => handleGenerateViz(index)}
-          affirmation={affirmations[index]}
-          affState={affStates[index]}
-          onGenerateAff={() => handleGenerateAff(index)}
           onSwipe={handleSwipe}
           x={x}
-          favorited={favorited}
-          onToggleFavorite={handleToggleFavorite}
-          favoriteEnabled={Boolean(sessionId)}
-          favoriteSaving={favoriteSaving}
-          favoriteError={favoriteError}
-          bottomOpacity={bottomOpacity}
-          onPrev={goPrev}
-          onNext={goNext}
           cardIndex={index}
           total={total}
         />
       </div>
+
+      {/* Prev / Next */}
+      <div className="flex items-center justify-between mt-3 px-0.5">
+        <button
+          type="button"
+          onClick={goPrev}
+          title="Previous statement"
+          aria-label="Previous statement"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-stone-200/90 bg-white shadow-sm shadow-stone-900/5 text-stone-500 transition-all duration-200 hover:border-stone-300 hover:text-stone-800 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden>
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <div className="flex gap-1.5 items-center">
+          {options.map((_, i) => (
+            <span key={i} className={`rounded-full transition-all duration-200 ${i === index ? 'w-4 h-1.5 bg-primary' : 'w-1.5 h-1.5 bg-stone-200'}`} />
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={goNext}
+          title="Next statement"
+          aria-label="Next statement"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-stone-200/90 bg-white shadow-sm shadow-stone-900/5 text-stone-500 transition-all duration-200 hover:border-stone-300 hover:text-stone-800 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden>
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
+      </div>
+
+      {/* CTA buttons */}
+      <div className="mx-auto mt-8 w-full sm:w-56 flex flex-col gap-2">
+        {/* Primary CTAs — generate/view */}
+        {vizStates[index] === 'loading' ? (
+          <span className="flex h-12 items-center justify-center gap-2 text-sm text-stone-400">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 animate-spin opacity-60" aria-hidden><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+            Shaping visualization…
+          </span>
+        ) : vizStates[index] === 'error' ? (
+          <button type="button" onClick={() => handleGenerateViz(index)} className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50 text-sm font-semibold text-red-600 transition-all duration-200 hover:bg-red-100 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/35">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
+            Retry visualization
+          </button>
+        ) : visualizations[index] ? (
+          <button type="button" onClick={() => setDialogOpen('viz')} className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-primary/40 bg-transparent text-sm font-medium text-primary transition-all duration-200 hover:bg-primary-muted/40 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
+            View visualization
+          </button>
+        ) : (
+          <button type="button" onClick={() => handleGenerateViz(index)} className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-primary/30 bg-primary-muted/60 text-sm font-semibold text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /></svg>
+            Generate visualization
+          </button>
+        )}
+
+        {affStates[index] === 'loading' ? (
+          <span className="flex h-12 items-center justify-center gap-2 text-sm text-stone-400">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 animate-spin opacity-60" aria-hidden><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+            Shaping affirmation…
+          </span>
+        ) : affStates[index] === 'error' ? (
+          <button type="button" onClick={() => handleGenerateAff(index)} className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50 text-sm font-semibold text-red-600 transition-all duration-200 hover:bg-red-100 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/35">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
+            Retry affirmation
+          </button>
+        ) : affirmations[index] ? (
+          <button type="button" onClick={() => setDialogOpen('aff')} className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-primary/40 bg-transparent text-sm font-medium text-primary transition-all duration-200 hover:bg-primary-muted/40 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
+            View affirmation
+          </button>
+        ) : (
+          <button type="button" onClick={() => handleGenerateAff(index)} className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-primary/30 bg-primary-muted/60 text-sm font-semibold text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" /><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z" /></svg>
+            Generate affirmation
+          </button>
+        )}
+
+        {/* Secondary CTAs */}
+        <div className="flex flex-col gap-2">
+          {sessionId && (
+            <button
+              type="button"
+              disabled={favoriteSaving}
+              onClick={handleToggleFavorite}
+              className={cn(
+                'flex h-12 w-full items-center justify-center gap-2 rounded-full border text-sm font-medium transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 disabled:opacity-50',
+                favorited
+                  ? 'border-amber-300/50 bg-amber-50/80 text-amber-600 hover:bg-amber-100'
+                  : 'border-stone-300 bg-transparent text-stone-500 hover:text-stone-700 hover:border-stone-400',
+              )}
+              aria-pressed={favorited}
+              aria-busy={favoriteSaving}
+            >
+              {favoriteSaving ? (
+                <>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 animate-spin opacity-60" aria-hidden><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+                  Saving…
+                </>
+              ) : favorited ? (
+                <>
+                  <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" className="h-4 w-4" aria-hidden><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
+                  Saved to favorites
+                </>
+              ) : (
+                <>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
+                  Save to favorites
+                </>
+              )}
+            </button>
+          )}
+          {favoriteError && (
+            <p className="text-center text-xs text-red-600" role="alert">Could not update favorites. Try again.</p>
+          )}
+          <button
+            type="button"
+            onClick={() => setHowToUseOpen(true)}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-stone-200/70 bg-transparent text-sm font-medium text-stone-400 transition-all duration-200 hover:text-stone-600 hover:border-stone-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
+            How to use this
+          </button>
+          {onStartOver && (
+            <button
+              type="button"
+              onClick={onStartOver}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-stone-200/70 bg-transparent text-sm font-medium text-stone-400 transition-all duration-200 hover:text-stone-600 hover:border-stone-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
+              Start over
+            </button>
+          )}
+        </div>
+      </div>
+
+      <ResponsiveOverlay
+        open={dialogOpen !== null}
+        onOpenChange={open => !open && setDialogOpen(null)}
+        title={dialogOpen === 'viz' ? 'Visualization' : 'Affirmation'}
+        description={dialogOpen === 'viz'
+          ? 'Mental picture for your practice, with your Kriyashakti line as context.'
+          : 'Affirmation lines for your practice, with your Kriyashakti line as context.'}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="flex flex-col gap-8 px-6 pb-8 pt-6">
+            {dialogOpen === 'viz' && visualizations[index] && (
+              <div className="text-pretty">
+                <p className="text-[1.0625rem] sm:text-lg font-normal leading-[1.65] tracking-[-0.02em] text-stone-900">
+                  {visualizations[index]}
+                </p>
+              </div>
+            )}
+            {dialogOpen === 'aff' && affirmations[index] && (
+              <div className="flex flex-col gap-5 text-pretty">
+                {affirmations[index].split('\n').map((line, i) => (
+                  <p key={i} className="text-[1.0625rem] sm:text-lg font-normal leading-[1.65] tracking-[-0.015em] text-stone-800 italic">
+                    {line}
+                  </p>
+                ))}
+              </div>
+            )}
+            <div className="border-t border-stone-200/90 pt-6">
+              <div className="flex gap-3.5">
+                <div className="mt-0.5 w-1 shrink-0 self-stretch min-h-11 rounded-full bg-primary/25" aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/70">Kriyashakti</p>
+                  <p className="mt-2 text-sm font-medium leading-relaxed text-stone-500">{options[index]}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ResponsiveOverlay>
+
+      <ResponsiveOverlay
+        open={howToUseOpen}
+        onOpenChange={setHowToUseOpen}
+        title="How to use this"
+        description="Instructions for using Kriyashakti statements."
+      >
+        <div className="flex flex-col gap-4 px-6 pb-8 pt-6 text-sm text-stone-600 leading-relaxed text-pretty">
+          <p>
+            We give you five versions of a Kriyashakti — a short phrase you say or write as if your wish is already true.
+            Use the arrows to browse, then pick what feels natural. Add a visualization and affirmation when you are ready.
+          </p>
+          {rootWish && (
+            <p>Your original wish: <span className="italic text-stone-400">&ldquo;{rootWish}&rdquo;</span></p>
+          )}
+        </div>
+      </ResponsiveOverlay>
     </div>
   )
 }

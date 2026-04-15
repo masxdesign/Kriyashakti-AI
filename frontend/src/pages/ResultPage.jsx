@@ -56,6 +56,7 @@ export default function ResultPage() {
               wishIndex={0}
               coreWish={result.data[0].wish}
               rootWish={result.wish}
+              onStartOver={handleStartOver}
             />
           </div>
         </>
@@ -72,13 +73,6 @@ export default function ResultPage() {
         </>
       )}
 
-      <button
-        type="button"
-        onClick={handleStartOver}
-        className="rounded-full border border-stone-200/90 bg-white/60 px-6 py-2.5 text-sm font-medium text-stone-600 shadow-sm shadow-stone-900/5 transition-all duration-200 hover:bg-stone-50 hover:border-stone-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2"
-      >
-        Start over
-      </button>
     </div>
   )
 }
