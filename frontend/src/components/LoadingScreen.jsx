@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { isKriya } from '@/lib/mode.js'
 
 const messages = [
   "Understanding your wish…",
   "Finding your core intentions…",
-  "Shaping your Kriyashakti…",
+  isKriya ? "Shaping your Kriyashakti…" : "Shaping your statement…",
   "Creating your visualization…",
 ];
 
@@ -188,9 +189,11 @@ export default function LoadingScreen() {
 
       {/* Text */}
       <div className="kriya-loader__copy">
-        <h1 className="kriya-loader__title">Kriyashakti AI</h1>
+        <h1 className="kriya-loader__title">{isKriya ? 'Kriyashakti AI' : 'Shape My Wish'}</h1>
         <p className="kriya-loader__tagline">
-          Say it however it comes. We&apos;ll shape it into a clear Kriyashakti.
+          {isKriya
+            ? "Say it however it comes. We\u2019ll shape it into a clear Kriyashakti."
+            : "Say it however it comes. We\u2019ll shape it into a clear present-tense statement."}
         </p>
         <p className="kriya-loader__status" style={{ opacity: visible ? 1 : 0 }}>
           {messages[msgIndex]}

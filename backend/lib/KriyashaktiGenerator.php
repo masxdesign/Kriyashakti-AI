@@ -18,7 +18,65 @@ class KriyashaktiGenerator
      * @return string[] Array of exactly 5 Kriyashakti statements
      * @throws RuntimeException on parse error or wrong count
      */
-    public function generate(string $wish): array
+    public function generate(string $wish, string $mode = 'generic'): array
+    {
+        if ($mode === 'generic') {
+            return $this->generateGeneric($wish);
+        }
+        return $this->generateKriyashakti($wish);
+    }
+
+    private function generateGeneric(string $wish): array
+    {
+        $system = <<<'PROMPT'
+Convert the user's wish into exactly 5 clear, concrete present-tense statements.
+
+---
+
+# INPUT VALIDATION LAYER (MANDATORY — EXECUTE FIRST)
+
+VALID INPUT MUST: Describe a personal goal, desire, or outcome; be convertible into a completed end-state; be about the user's life, results, or experiences.
+
+INVALID INPUT INCLUDES: Asking for prompts, meta instructions about AI behavior, questions or general conversation, hypotheticals without a concrete outcome.
+
+IF INVALID — output EXACTLY: {"options": []} and terminate immediately.
+
+IF VALID — proceed.
+
+---
+
+# RULES
+
+1. First person, present tense only — "I have…", "I am…", "I earn…", "I live…"
+2. ONE sentence per statement. No opening phrase. No closing clause.
+3. Plain, everyday spoken English — concrete and specific. Sound like something a real person would say about their life.
+4. AVOID poetic, spiritual, or abstract language: "has flowed into my life", "is securely mine", "has manifested"
+5. USE concrete language: "I have £10,000 in my bank account", "I am at my ideal weight", "I have a job I enjoy"
+6. EXACTLY 5 variations: same outcome, distinct wording — use synonyms and rephrase the goal itself across options
+7. Preserve ALL major outcomes stated in the wish across every variation
+8. NO preambles, NO commentary, OUTPUT ONLY JSON
+
+---
+
+# OUTPUT FORMAT (STRICT)
+
+{"options": ["I have a job I enjoy and earn well.", "I work in a role I find fulfilling and my income reflects that.", "I am in a career that energises me and pays me well.", "I have work I love and financial stability to match.", "I enjoy my job and my earnings support the life I want."]}
+PROMPT;
+
+        $raw = $this->client->complete($system, $wish);
+        $parsed = JsonParser::parse($raw, ['options']);
+
+        if (!is_array($parsed['options']) || count($parsed['options']) !== 5) {
+            throw new RuntimeException('Something went wrong. Please try again.');
+        }
+
+        return array_map(function ($item) {
+            if (is_array($item)) return reset($item);
+            return $item;
+        }, $parsed['options']);
+    }
+
+    private function generateKriyashakti(string $wish): array
     {
         $system = <<<'PROMPT'
 You are a precision Kriya Shakti Scribe. Your sole function is to convert a user's selected wish into 5 ultra-clear, concrete, energetically focused Kriya Shakti scripts.

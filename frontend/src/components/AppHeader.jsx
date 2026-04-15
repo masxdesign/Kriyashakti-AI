@@ -2,6 +2,7 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { usePrimaryNavActive, useWishDetailHeaderMeta, useResultOverviewHeaderMeta } from '@/lib/navState.js'
 import { getWishResult, clearWishResult } from '@/store/wishResult.js'
 import { LibraryPopover } from './LibraryPanel.jsx'
+import { isKriya } from '@/lib/mode.js'
 
 function ChevronLeft({ className }) {
   return (
@@ -79,7 +80,7 @@ export default function AppHeader() {
               to="/"
               className="min-w-0 font-semibold tracking-tight text-stone-900 transition-opacity duration-200 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md truncate text-[1.05rem] sm:text-base"
             >
-              Kriyashakti
+              {isKriya ? 'Kriyashakti' : 'Shape My Wish'}
             </Link>
             <div className="hidden md:flex items-center">
               <LibraryPopover active={libraryActive} defaultTab="favorites" />

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { getAllFavorites, deleteFavorite, getHistoryBySessionId } from '../store/historyDB.js'
 import { setWishResult } from '../store/wishResult.js'
+import { isKriya } from '@/lib/mode.js'
 
 function timeAgo(ts) {
   const diff = Date.now() - ts
@@ -64,7 +65,7 @@ export default function FavoritesPage() {
       <div className="w-full max-w-2xl">
         <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-1">Saved on this device</p>
         <h1 className="text-2xl font-bold tracking-tight text-stone-900 leading-snug">Favorites</h1>
-        <p className="mt-1.5 text-sm text-stone-500 leading-relaxed">Kriyashakti statements you saved for daily practice.</p>
+        <p className="mt-1.5 text-sm text-stone-500 leading-relaxed">{isKriya ? 'Kriyashakti statements you saved for daily practice.' : 'Statements you saved for daily practice.'}</p>
       </div>
 
       {loading && (
@@ -97,7 +98,7 @@ export default function FavoritesPage() {
             <li
               key={row.id}
               role="button"
-              aria-label="Open this Kriyashakti in context"
+              aria-label={isKriya ? 'Open this Kriyashakti in context' : 'Open this statement in context'}
               onClick={() => handleOpen(row)}
               onKeyDown={e => {
                 if (e.key === 'Enter' || e.key === ' ') {

@@ -5,6 +5,7 @@ import { setWishResult, getPendingEdit, clearPendingEdit } from '../store/wishRe
 import { ensureSessionIdForEntry, findInHistory, saveToHistory } from '../store/historyDB.js'
 import WishForm from '../components/WishForm.jsx'
 import LoadingScreen from '../components/LoadingScreen.jsx'
+import { isKriya, MODE } from '@/lib/mode.js'
 
 export default function InputPage() {
   const navigate = useNavigate()
@@ -50,7 +51,9 @@ export default function InputPage() {
       <div className="page-heading">
         <h1 className="page-title">Shape your wish</h1>
         <p className="page-lead">
-          Say it however it comes. We turn it into a clear Kriyashakti you can use in practice.
+          {isKriya
+            ? 'Say it however it comes. We turn it into a clear Kriyashakti you can use in practice.'
+            : 'Say it however it comes. We turn it into a clear present-tense statement you can use in practice.'}
         </p>
       </div>
 
@@ -63,13 +66,26 @@ export default function InputPage() {
       )}
 
       {import.meta.env.DEV && (
-        <button
-          type="button"
-          onClick={() => setIsLoading(true)}
-          className="text-xs text-stone-400 hover:text-stone-500 transition-colors"
-        >
-          [test loader]
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsLoading(true)}
+            className="text-xs text-stone-400 hover:text-stone-500 transition-colors"
+          >
+            [test loader]
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const next = MODE === 'generic' ? 'kriyashakti' : 'generic'
+              localStorage.setItem('VITE_MODE_OVERRIDE', next)
+              window.location.reload()
+            }}
+            className="text-xs text-stone-400 hover:text-stone-500 transition-colors"
+          >
+            [mode: {MODE}]
+          </button>
+        </div>
       )}
     </div>
   )

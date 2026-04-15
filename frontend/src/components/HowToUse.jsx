@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { isKriya } from '@/lib/mode.js'
 
 export default function HowToUse({ wish }) {
   const [open, setOpen] = useState(false)
@@ -19,12 +20,16 @@ export default function HowToUse({ wish }) {
       {open && (
         <div className="mt-3 text-sm text-stone-600 leading-relaxed max-w-prose text-pretty space-y-2">
           <p className="sm:hidden">
-            We give you five versions of a Kriyashakti — a short phrase you say or write as if your wish is already true.
-            Swipe or use the arrows to browse, then pick what feels natural. Add a visualization and affirmation when you are ready.
+            {isKriya
+              ? 'We give you five versions of a Kriyashakti — a short phrase you say or write as if your wish is already true.'
+              : 'We give you five present-tense statements — a short phrase you say or write as if your wish is already true.'}
+            {' '}Swipe or use the arrows to browse, then pick what feels natural. Add a visualization and affirmation when you are ready.
           </p>
           <p className="hidden sm:block">
-            We give you five versions of a Kriyashakti — a short phrase you say or write as if your wish is already true.
-            Use the arrows to browse, then pick what feels natural. Add a visualization and affirmation when you are ready.
+            {isKriya
+              ? 'We give you five versions of a Kriyashakti — a short phrase you say or write as if your wish is already true.'
+              : 'We give you five present-tense statements — a short phrase you say or write as if your wish is already true.'}
+            {' '}Use the arrows to browse, then pick what feels natural. Add a visualization and affirmation when you are ready.
           </p>
           {wish && (
             <p>
