@@ -35,7 +35,11 @@ class JsonParser
             $sanitized = preg_replace_callback(
                 '/"((?:[^"\\\\]|\\\\[\s\S])*)"/s',
                 function ($m) {
-                    $inner = str_replace(["\n", "\r", "\t"], ['\n', '\r', '\t'], $m[1]);
+                    // Escape all ASCII control characters (0x00–0x1F) that are not already escaped
+                    $inner = preg_replace_callback('/[\x00-\x1F]/', function ($c) {
+                        $map = ["\n" => '\n', "\r" => '\r', "\t" => '\t'];
+                        return $map[$c[0]] ?? sprintf('\u%04x', ord($c[0]));
+                    }, $m[1]);
                     return '"' . $inner . '"';
                 },
                 $stripped

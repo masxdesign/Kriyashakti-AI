@@ -1,21 +1,29 @@
+import { useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { getWishResult, clearWishResult, setWishResult } from '../store/wishResult.js'
+import { useWishResult, clearWishResult, setWishResult } from '../store/wishResult.js'
 import OriginalWishCard from '../components/OriginalWishCard.jsx'
 import CoreIntentionsChips from '../components/CoreIntentionsChips.jsx'
 import SuggestionSlider from '../components/SuggestionSlider.jsx'
-import HowToUse from '../components/HowToUse.jsx'
 import { updateVisualizationsInHistory, updateAffirmationsInHistory } from '../store/historyDB.js'
 
 export default function ResultPage() {
   const navigate = useNavigate()
-  const result = getWishResult()
+  const result = useWishResult()
+
+  useEffect(() => {
+    if (!result?.data) {
+      navigate({ to: '/' })
+    }
+  }, [result, navigate])
+
+  if (!result?.data) return null
 
   const coreWishes = result.data.map(item => item.wish)
   const isSingle = result.data.length === 1
 
   function handleStartOver() {
-    clearWishResult()
     navigate({ to: '/' })
+    clearWishResult()
   }
 
   async function handleVisualizationsGenerated(viz) {
@@ -48,33 +56,28 @@ export default function ResultPage() {
               wishIndex={0}
               coreWish={result.data[0].wish}
               rootWish={result.wish}
+              onStartOver={handleStartOver}
             />
           </div>
-          <div className="w-full max-w-2xl">
-            <HowToUse />
-          </div>
-          <OriginalWishCard wish={result.wish} variant="secondary" />
         </>
       ) : (
         <>
-          <div className="page-heading w-full max-w-2xl !text-left">
-            <h1 className="page-title !text-left">Your Kriyashakti</h1>
-            <p className="page-lead !mx-0 text-sm !text-left">
-              Tap a wish below to open its statements and practice notes.
-            </p>
+          <div className="w-full max-w-2xl flex flex-col gap-6">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-1">Your Kriyashakti</p>
+              <h1 className="text-2xl font-bold tracking-tight text-stone-900 leading-snug text-balance">
+                Your wish has {coreWishes.length} core intentions
+              </h1>
+              <p className="mt-2 text-sm text-stone-500 leading-relaxed text-pretty">
+                Combined wording is harder to hold as a single image. Each intention gets its own Kriyashakti so the energy stays focused.
+              </p>
+            </div>
+            <OriginalWishCard wish={result.wish} variant="secondary" />
+            <CoreIntentionsChips wishes={coreWishes} sessionId={result.sessionId} />
           </div>
-          <OriginalWishCard wish={result.wish} variant="secondary" />
-          <CoreIntentionsChips wishes={coreWishes} sessionId={result.sessionId} />
         </>
       )}
 
-      <button
-        type="button"
-        onClick={handleStartOver}
-        className="rounded-full border border-stone-200/90 bg-white/60 px-6 py-2.5 text-sm font-medium text-stone-600 shadow-sm shadow-stone-900/5 transition-all duration-200 hover:bg-stone-50 hover:border-stone-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2"
-      >
-        Start over
-      </button>
     </div>
   )
 }

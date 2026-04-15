@@ -3,6 +3,16 @@ const STORE_NAME = 'history'
 const FAVORITES_STORE = 'favorites'
 const DB_VERSION = 4
 
+// Lightweight pub/sub for favorites changes so subscribers re-check state
+const _favListeners = new Set()
+export function onFavoritesChange(cb) {
+  _favListeners.add(cb)
+  return () => _favListeners.delete(cb)
+}
+function _notifyFavorites() {
+  _favListeners.forEach(cb => cb())
+}
+
 function createFavoritesStore(db) {
   if (db.objectStoreNames.contains(FAVORITES_STORE)) return
   const favStore = db.createObjectStore(FAVORITES_STORE, { keyPath: 'id', autoIncrement: true })
@@ -102,7 +112,7 @@ export async function findInHistory(wish) {
     req.onsuccess = e => {
       const normalized = wish.trim().toLowerCase()
       const match = e.target.result.find(
-        entry => entry.wish.trim().toLowerCase() === normalized
+        entry => entry.wish?.trim().toLowerCase() === normalized
       )
       resolve(match ?? null)
     }
@@ -206,7 +216,7 @@ export async function toggleFavorite(payload) {
       const existing = getReq.result
       if (existing) {
         const delReq = store.delete(existing.id)
-        delReq.onsuccess = () => resolve({ favorited: false })
+        delReq.onsuccess = () => { _notifyFavorites(); resolve({ favorited: false }) }
         delReq.onerror = () => reject(delReq.error)
         return
       }
@@ -222,7 +232,7 @@ export async function toggleFavorite(payload) {
         affirmation: affirmation ?? null,
         createdAt: Date.now(),
       })
-      addReq.onsuccess = () => resolve({ favorited: true })
+      addReq.onsuccess = () => { _notifyFavorites(); resolve({ favorited: true }) }
       addReq.onerror = () => reject(addReq.error)
     }
     getReq.onerror = () => reject(getReq.error)
@@ -267,7 +277,7 @@ export async function deleteFavorite(id) {
     tx.onerror = () => reject(tx.error)
     const store = tx.objectStore(FAVORITES_STORE)
     const req = store.delete(id)
-    req.onsuccess = () => resolve()
+    req.onsuccess = () => { _notifyFavorites(); resolve() }
     req.onerror = () => reject(req.error)
   })
 }

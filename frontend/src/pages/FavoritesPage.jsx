@@ -62,10 +62,9 @@ export default function FavoritesPage() {
   return (
     <div className="page-shell">
       <div className="w-full max-w-2xl">
-        <h1 className="page-title text-left">Favorites</h1>
-        <p className="page-lead text-left mx-0 mt-2 text-sm">
-          Kriyashakti lines you starred are saved on this device.
-        </p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-1">Saved on this device</p>
+        <h1 className="text-2xl font-bold tracking-tight text-stone-900 leading-snug">Favorites</h1>
+        <p className="mt-1.5 text-sm text-stone-500 leading-relaxed">Kriyashakti statements you saved for daily practice.</p>
       </div>
 
       {loading && (

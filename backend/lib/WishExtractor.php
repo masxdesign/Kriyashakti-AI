@@ -168,10 +168,16 @@ PROMPT;
             throw new RuntimeException('Something went wrong. Please try again.');
         }
 
-        if (count($parsed['options']) === 0) {
+        // Flatten single-element arrays the LLM occasionally wraps options in
+        $options = array_values(array_filter(
+            array_map(fn($o) => is_array($o) ? (count($o) === 1 && is_string($o[0]) ? $o[0] : null) : (is_string($o) ? $o : null), $parsed['options']),
+            fn($o) => $o !== null && $o !== ''
+        ));
+
+        if (count($options) === 0) {
             throw new RuntimeException('Please describe a personal goal or desire.');
         }
 
-        return $parsed['options'];
+        return $options;
     }
 }

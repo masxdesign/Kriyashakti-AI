@@ -41,8 +41,9 @@ export default function HistoryPage() {
   return (
     <div className="page-shell">
       <div className="w-full max-w-2xl">
-        <h1 className="page-title text-left">History</h1>
-        <p className="page-lead text-left mx-0 mt-2 text-sm">Open any entry to continue where you left off.</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-1">Past sessions</p>
+        <h1 className="text-2xl font-bold tracking-tight text-stone-900 leading-snug">History</h1>
+        <p className="mt-1.5 text-sm text-stone-500 leading-relaxed">Tap any entry to pick up where you left off.</p>
       </div>
 
       {loading && (
@@ -50,7 +51,7 @@ export default function HistoryPage() {
           {[1, 2, 3].map(i => (
             <div
               key={i}
-              className="h-[5.5rem] rounded-2xl bg-stone-200/60 animate-pulse"
+              className="h-22 rounded-2xl bg-stone-200/60 animate-pulse"
             />
           ))}
         </div>
