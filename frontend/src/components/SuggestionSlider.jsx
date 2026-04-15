@@ -1,5 +1,6 @@
 import { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react'
-import { motion, useMotionValue, useTransform, useMotionValueEvent, animate, useReducedMotion } from 'motion/react'
+import HowToUse from './HowToUse.jsx'
+import { motion, useMotionValue, useTransform, useMotionValueEvent, animate } from 'motion/react'
 import { useDrag } from '@use-gesture/react'
 import { generateVisualization, generateAffirmation } from '../api/processWish.js'
 import { cn } from '@/lib/utils'
@@ -12,13 +13,6 @@ import {
   DrawerDescription,
 } from '@/components/ui/drawer'
 
-function IconChevronsLeft({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-    </svg>
-  )
-}
 
 function IconStar({ className, filled }) {
   return (
@@ -28,33 +22,6 @@ function IconStar({ className, filled }) {
   )
 }
 
-/** Quiet cue — icon + text share one vertical center; shimmer only on lead words */
-function SwipeHint() {
-  const reduceMotion = useReducedMotion()
-
-  return (
-    <div className="mb-3 flex max-w-xl items-center gap-0" role="status">
-      <div
-        className="pointer-events-none h-5 w-px shrink-0 rounded-full bg-gradient-to-b from-stone-200/0 via-stone-400/35 to-stone-200/0"
-        aria-hidden
-      />
-      <div className="flex min-w-0 flex-1 items-center gap-2.5 pl-3.5">
-        <motion.span
-          className="inline-flex shrink-0 items-center justify-center text-primary/45"
-          animate={reduceMotion ? false : { x: [0, -3, 0] }}
-          transition={{ duration: 2.75, repeat: Infinity, ease: [0.4, 0, 0.2, 1] }}
-          aria-hidden
-        >
-          <IconChevronsLeft className="h-[1.0625rem] w-[1.0625rem]" />
-        </motion.span>
-        <p className="min-w-0 text-[13px] leading-5 tracking-[-0.01em] sm:text-[0.8125rem]">
-          <span className="swipe-hint__shine">Swipe left</span>
-          <span className="font-normal text-stone-500"> for the next line.</span>
-        </p>
-      </div>
-    </div>
-  )
-}
 
 const SwipeCard = forwardRef(function SwipeCard({
   option, visualization, vizState, onGenerateViz,
@@ -62,11 +29,12 @@ const SwipeCard = forwardRef(function SwipeCard({
   onSwipe, x, className,
   favorited, onToggleFavorite, favoriteEnabled,
   favoriteSaving, favoriteError,
-  bottomOpacity,
+  bottomOpacity, onPrev, onNext,
 }, ref) {
   const [dialogOpen, setDialogOpen] = useState(null)
 
   const rotate = useTransform(x, [-280, 0], [-20, 0])
+  const swipeHintOpacity = useTransform(x, [-20, 0], [0, 1])
   const flying = useRef(false)
   /** Stops mid-flight animations so x never freezes; pointer loss no longer leaves flying=true. */
   const cardAnimRef = useRef(null)
@@ -165,6 +133,13 @@ const SwipeCard = forwardRef(function SwipeCard({
           <p className="text-stone-800 text-base font-semibold leading-relaxed text-pretty pr-14 min-h-20">
             {option}
           </p>
+          <motion.p
+            style={{ opacity: swipeHintOpacity }}
+            className="pointer-events-none mt-3 self-end text-[11px] font-medium text-stone-300 select-none"
+            aria-hidden
+          >
+            swipe ←
+          </motion.p>
         </div>
 
         <motion.div style={{ opacity: nextLabel }} className="pointer-events-none absolute right-4 top-4 rounded-md bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
@@ -172,16 +147,17 @@ const SwipeCard = forwardRef(function SwipeCard({
         </motion.div>
       </motion.div>
 
-      <motion.div className="flex flex-col gap-3 px-0.5" style={{ opacity: bottomOpacity }}>
-        {favoriteEnabled && (
-          <div className="flex flex-col gap-1">
-            <div className="flex min-h-8 items-center gap-2">
+      <motion.div className="flex flex-col gap-2 px-0.5" style={{ opacity: bottomOpacity }}>
+        {/* Single row: favorite + generate buttons */}
+        <div className="flex min-h-8 flex-nowrap items-center gap-2 border-t border-stone-200/90 pt-3 justify-between">
+          {favoriteEnabled && (
+            <>
               <button
                 type="button"
                 disabled={favoriteSaving}
                 onClick={onToggleFavorite}
                 className={cn(
-                  'rounded-lg p-1.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-50',
+                  'shrink-0 rounded-lg p-1.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-50',
                   favorited
                     ? 'text-amber-500 ring-2 ring-amber-400/40 hover:text-amber-600'
                     : 'text-stone-300 hover:text-amber-500',
@@ -192,92 +168,84 @@ const SwipeCard = forwardRef(function SwipeCard({
               >
                 <IconStar className="h-5 w-5" filled={favorited} />
               </button>
-              {favorited && !favoriteSaving ? (
-                <span className="text-xs font-semibold text-amber-600">Saved on this device</span>
-              ) : null}
-              {favoriteSaving ? (
-                <span className="text-xs text-stone-500">Saving…</span>
-              ) : null}
-            </div>
-            {favoriteError ? (
-              <p className="text-xs text-red-600" role="alert">
-                Could not update favorites. Check that browser storage is allowed, then try again.
-              </p>
-            ) : null}
-          </div>
-        )}
-
-        <div
-          className={cn(
-            'flex min-h-8 flex-nowrap items-center gap-x-3 border-t border-stone-200/90 pt-4 sm:gap-x-4',
-            visualization ? 'justify-between' : 'justify-start',
+              <span className="h-4 w-px shrink-0 bg-stone-200/90" aria-hidden />
+            </>
           )}
-        >
-          <div className="flex h-8 min-w-0 items-center">
+
+          <div className="flex min-w-0 items-center gap-2">
             {vizState === 'loading' ? (
-              <span className="inline-flex h-8 items-center text-xs text-stone-500">Shaping visualization…</span>
+              <span className="text-xs text-stone-500">Shaping visualization…</span>
             ) : vizState === 'error' ? (
-              <button
-                type="button"
-                onClick={onGenerateViz}
-                className="inline-flex h-8 max-w-full items-center truncate text-xs text-red-600 hover:text-red-800 underline-offset-2 hover:underline transition-colors"
-              >
+              <button type="button" onClick={onGenerateViz} className="text-xs text-red-600 underline-offset-2 hover:underline hover:text-red-800 transition-colors">
                 Could not generate. Try again
               </button>
             ) : visualization ? (
-              <button
-                type="button"
-                onClick={() => setDialogOpen('viz')}
-                className="inline-flex h-8 max-w-full items-center truncate rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-              >
+              <button type="button" onClick={() => setDialogOpen('viz')} className="inline-flex h-8 items-center rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
                 View visualization
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={onGenerateViz}
-                className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-              >
+              <button type="button" onClick={onGenerateViz} className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
                 Generate visualization
               </button>
             )}
-          </div>
 
-          {visualization && (
-            <>
-              <span className="h-4 w-px shrink-0 bg-stone-200/90" aria-hidden />
-              <div className="flex h-8 min-w-0 items-center">
+            {visualization && (
+              <>
+                <span className="h-4 w-px shrink-0 bg-stone-200/90" aria-hidden />
                 {affState === 'loading' ? (
-                  <span className="inline-flex h-8 items-center text-xs text-stone-500">Shaping affirmation…</span>
+                  <span className="text-xs text-stone-500">Shaping affirmation…</span>
                 ) : affState === 'error' ? (
-                  <button
-                    type="button"
-                    onClick={onGenerateAff}
-                    className="inline-flex h-8 max-w-full items-center truncate text-xs text-red-600 hover:text-red-800 underline-offset-2 hover:underline transition-colors"
-                  >
+                  <button type="button" onClick={onGenerateAff} className="text-xs text-red-600 underline-offset-2 hover:underline hover:text-red-800 transition-colors">
                     Could not generate. Try again
                   </button>
                 ) : affirmation ? (
-                  <button
-                    type="button"
-                    onClick={() => setDialogOpen('aff')}
-                    className="inline-flex h-8 max-w-full items-center truncate rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-                  >
+                  <button type="button" onClick={() => setDialogOpen('aff')} className="inline-flex h-8 items-center rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
                     View affirmation
                   </button>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={onGenerateAff}
-                    className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-                  >
+                  <button type="button" onClick={onGenerateAff} className="inline-flex h-8 shrink-0 items-center rounded-lg border border-primary/25 bg-primary-muted/50 px-3 text-xs font-medium text-primary transition-all duration-200 hover:bg-primary-muted active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35">
                     Generate affirmation
                   </button>
                 )}
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1.5 ml-auto">
+            <button
+              type="button"
+              onClick={onPrev}
+              title="Previous statement"
+              aria-label="Previous statement"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-stone-200/90 bg-white shadow-sm shadow-stone-900/5 text-stone-500 transition-all duration-200 hover:border-stone-300 hover:text-stone-800 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden>
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={onNext}
+              title="Next statement"
+              aria-label="Next statement"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-stone-200/90 bg-white shadow-sm shadow-stone-900/5 text-stone-500 transition-all duration-200 hover:border-stone-300 hover:text-stone-800 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden>
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {favoriteError ? (
+          <p className="text-xs text-red-600" role="alert">
+            Could not update favorites. Check that browser storage is allowed, then try again.
+          </p>
+        ) : favorited && !favoriteSaving ? (
+          <span className="text-xs font-semibold text-amber-600">Saved on this device</span>
+        ) : favoriteSaving ? (
+          <span className="text-xs text-stone-500">Saving…</span>
+        ) : null}
       </motion.div>
 
       <Drawer open={dialogOpen !== null} onOpenChange={open => !open && setDialogOpen(null)}>
@@ -511,14 +479,15 @@ export default function SuggestionSlider({
           <p className="mt-2 text-sm font-medium text-stone-500">
             Statement {index + 1} of {total}
           </p>
+          <div className="mt-3">
+            <HowToUse wish={rootWish} />
+          </div>
         </header>
       ) : (
         <p className="text-xs font-medium tracking-[0.08em] text-primary/80 uppercase mb-3">
           Version {index + 1} of {total} — pick what feels right
         </p>
       )}
-
-      {total > 1 && <SwipeHint />}
 
       <div className="relative grid grid-cols-1 grid-rows-1 place-items-start select-none">
         {/* Card behind — mirrors front stack height (statement card + spacer for controls below) */}
@@ -565,34 +534,10 @@ export default function SuggestionSlider({
           favoriteSaving={favoriteSaving}
           favoriteError={favoriteError}
           bottomOpacity={bottomOpacity}
+          onPrev={goPrev}
+          onNext={goNext}
         />
       </div>
-
-      <motion.div style={{ opacity: bottomOpacity }} className="flex items-center justify-between mt-4 px-1">
-        <button
-          type="button"
-          onClick={goPrev}
-          className="rounded-full px-4 py-1.5 text-sm font-medium text-stone-500 hover:text-stone-900 hover:bg-stone-100/90 transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-          title="Go to previous statement"
-        >
-          Previous
-        </button>
-        <div className="flex gap-1.5 items-center">
-          {options.map((_, i) => (
-            <span
-              key={i}
-              className={`rounded-full transition-all duration-200 ${i === index ? 'w-4 h-1.5 bg-primary' : 'w-1.5 h-1.5 bg-stone-200'}`}
-            />
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={goNext}
-          className="rounded-full px-4 py-1.5 text-sm font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-100/90 transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-        >
-          Next →
-        </button>
-      </motion.div>
     </div>
   )
 }

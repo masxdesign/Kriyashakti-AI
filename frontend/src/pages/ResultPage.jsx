@@ -4,7 +4,6 @@ import { getWishResult, clearWishResult, setWishResult } from '../store/wishResu
 import OriginalWishCard from '../components/OriginalWishCard.jsx'
 import CoreIntentionsChips from '../components/CoreIntentionsChips.jsx'
 import SuggestionSlider from '../components/SuggestionSlider.jsx'
-import HowToUse from '../components/HowToUse.jsx'
 import { updateVisualizationsInHistory, updateAffirmationsInHistory } from '../store/historyDB.js'
 
 export default function ResultPage() {
@@ -59,10 +58,6 @@ export default function ResultPage() {
               rootWish={result.wish}
             />
           </div>
-          <div className="w-full max-w-2xl">
-            <HowToUse />
-          </div>
-          <OriginalWishCard wish={result.wish} variant="secondary" />
         </>
       ) : (
         <>

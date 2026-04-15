@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function HowToUse() {
+export default function HowToUse({ wish }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -17,10 +17,17 @@ export default function HowToUse() {
         How to use this
       </button>
       {open && (
-        <p className="mt-3 text-sm text-stone-600 leading-relaxed max-w-prose text-pretty">
-          We give you five versions of a Kriyashakti — a short phrase you say or write as if your wish is already true.
-          Swipe or use the arrows to browse, then pick what feels natural. Add a visualization and affirmation when you are ready.
-        </p>
+        <div className="mt-3 text-sm text-stone-600 leading-relaxed max-w-prose text-pretty space-y-2">
+          <p>
+            We give you five versions of a Kriyashakti — a short phrase you say or write as if your wish is already true.
+            Swipe or use the arrows to browse, then pick what feels natural. Add a visualization and affirmation when you are ready.
+          </p>
+          {wish && (
+            <p>
+              Your original wish: <span className="italic text-stone-500">&ldquo;{wish}&rdquo;</span>
+            </p>
+          )}
+        </div>
       )}
     </div>
   )
