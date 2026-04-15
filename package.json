@@ -1,5 +1,6 @@
 {
   "name": "kriyashakti-ai",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "npm run backend & npm run frontend",
