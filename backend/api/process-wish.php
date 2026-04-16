@@ -53,6 +53,7 @@ if (json_last_error() !== JSON_ERROR_NONE || !is_array($body)) {
     jsonError('Invalid request body.');
 }
 $wish = trim($body['wish'] ?? '');
+$mode = in_array($body['mode'] ?? '', ['kriyashakti', 'generic']) ? $body['mode'] : 'generic';
 
 if (!$wish) {
     jsonError('Please describe a personal goal or desire.');
@@ -76,7 +77,7 @@ try {
     // Stage 2: generate Kriyashakti statements for each wish
     $data = [];
     foreach ($extractedWishes as $extractedWish) {
-        $options = $kriyashaktiGen->generate($extractedWish);
+        $options = $kriyashaktiGen->generate($extractedWish, $mode);
         $data[] = [
             'wish' => $extractedWish,
             'options' => $options,

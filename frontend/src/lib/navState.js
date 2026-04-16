@@ -1,5 +1,6 @@
 import { useRouterState } from '@tanstack/react-router'
 import { getWishResult } from '@/store/wishResult.js'
+import { isKriya } from '@/lib/mode.js'
 
 /** Home tab = input + result flow; History = saved list; Favorites = starred lines. */
 export function usePrimaryNavActive() {
@@ -18,7 +19,7 @@ export function useWishDetailHeaderMeta() {
   const idx = Number(m[1])
   const result = getWishResult()
   const isMulti = (result?.data?.length ?? 1) > 1
-  const title = isMulti ? `Intention ${idx + 1}` : 'Your Kriyashakti'
+  const title = isMulti ? `Intention ${idx + 1}` : (isKriya ? 'Your Kriyashakti' : 'Your statement')
   return { title, index: idx }
 }
 
@@ -30,5 +31,5 @@ export function useResultOverviewHeaderMeta() {
   const result = getWishResult()
   if (!result) return null
   const isMulti = (result.data?.length ?? 1) > 1
-  return { title: isMulti ? 'Core intentions' : 'Your Kriyashakti' }
+  return { title: isMulti ? 'Core intentions' : (isKriya ? 'Your Kriyashakti' : 'Your statement') }
 }

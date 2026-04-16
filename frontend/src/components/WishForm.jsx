@@ -2,10 +2,10 @@ import { useState } from 'react'
 
 const EXAMPLES = [
   'I want more money flowing into my life every month',
-  'I want to lose weight and feel confident and energetic in my body',
-  'I want a loving, committed relationship with the right person',
-  'I want to be happy, calm and at peace with my life',
-  'I want to grow my career and earn what I truly deserve',
+  'I want to lose weight and feel confident in my body',
+  'I want a loving, committed relationship',
+  'I want to be calm and at peace with my life',
+  'I want to grow my career and earn what I deserve',
 ]
 
 function normalizeWish(text) {
@@ -15,6 +15,7 @@ function normalizeWish(text) {
 export default function WishForm({ onSubmit, isLoading, initialValue = '' }) {
   const [value, setValue] = useState(initialValue)
   const [touched, setTouched] = useState(false)
+  const [focused, setFocused] = useState(false)
 
   const isEmpty = value.trim() === ''
   const showError = touched && isEmpty
@@ -34,42 +35,74 @@ export default function WishForm({ onSubmit, isLoading, initialValue = '' }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full max-w-xl">
-      <textarea
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        onBlur={() => setTouched(true)}
-        rows={6}
-        disabled={isLoading}
-        placeholder="Write your wish however it comes to you…"
-        className={`w-full max-w-prose mx-auto rounded-2xl border bg-white/90 p-4 text-base text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary/35 resize-none transition-shadow duration-200 disabled:opacity-50 ${showError ? 'border-red-400/90' : 'border-stone-200/90'}`}
-      />
-      {showError && (
-        <p className="text-sm text-red-700 -mt-1 text-center">Write your wish before continuing.</p>
-      )}
-      <div>
-        <p className="text-xs font-medium text-stone-500 mb-2">Try a starting line</p>
-        <div className="flex flex-wrap gap-2">
-          {EXAMPLES.map(example => (
+    <form onSubmit={handleSubmit} className="home-form">
+
+      {/* ── Gradient border shell → white inner core ── */}
+      <div className={`home-card${focused ? ' home-card--focused' : ''}${showError ? ' home-card--error' : ''}`}>
+        <div className="home-card-inner">
+
+          {/* Textarea */}
+          <textarea
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            onBlur={() => { setTouched(true); setFocused(false) }}
+            onFocus={() => setFocused(true)}
+            rows={5}
+            disabled={isLoading}
+            placeholder="Say it however it comes to you…"
+            className="home-textarea"
+            aria-label="Your wish"
+          />
+
+          {/* Footer bar — error left, CTA right */}
+          <div className="home-card-footer">
+            {showError
+              ? <p className="home-field-error" role="alert">Write your wish first.</p>
+              : <span />
+            }
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="home-submit-btn"
+            >
+              <span className="home-submit-label">
+                {isLoading ? 'Shaping…' : 'Shape my wish'}
+              </span>
+              <span className="home-submit-icon" aria-hidden>
+                {isLoading ? (
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+                    <path d="M6.5 1v1.5M6.5 10.5V12M1 6.5h1.5M10.5 6.5H12M2.7 2.7l1.06 1.06M9.24 9.24l1.06 1.06M2.7 10.3l1.06-1.06M9.24 3.76l1.06-1.06"/>
+                  </svg>
+                ) : (
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 6.5h9M8 3l3.5 3.5L8 10"/>
+                  </svg>
+                )}
+              </span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ── Example chips — compact wrapping row ── */}
+      <div className="home-chips-wrap">
+        <span className="home-chips-label">Try</span>
+        <div className="home-chips">
+          {EXAMPLES.map((example, i) => (
             <button
               key={example}
               type="button"
               disabled={isLoading}
               onClick={() => submitExample(example)}
-              className="rounded-lg border border-stone-200/90 bg-white/70 px-3 py-1.5 text-xs font-medium text-stone-600 hover:border-primary/35 hover:text-primary hover:bg-primary-muted/50 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 text-left text-pretty max-w-full"
+              className="home-chip"
+              style={{ animationDelay: `${i * 50 + 80}ms` }}
             >
               {example}
             </button>
           ))}
         </div>
       </div>
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="self-end rounded-full bg-primary px-8 py-3 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50 transition-all duration-200 active:scale-[0.98] shadow-md shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
-      >
-        {isLoading ? 'Shaping…' : 'Shape my wish'}
-      </button>
     </form>
   )
 }

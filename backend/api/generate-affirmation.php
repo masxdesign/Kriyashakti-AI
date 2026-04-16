@@ -53,6 +53,7 @@ if (!$option) {
     jsonError('option must be a non-empty string.');
 }
 $visualization = isset($body['visualization']) ? trim($body['visualization']) : null;
+$mode = in_array($body['mode'] ?? '', ['kriyashakti', 'generic']) ? $body['mode'] : 'generic';
 
 $apiKey = getenv('OPENROUTER_API_KEY');
 if (!$apiKey) {
@@ -62,7 +63,7 @@ if (!$apiKey) {
 try {
     $client = new OpenRouterClient($apiKey);
     $affirmationGen = new AffirmationGenerator($client);
-    $affirmation = $affirmationGen->generate($option, $visualization ?: null);
+    $affirmation = $affirmationGen->generate($option, $visualization ?: null, $mode);
 
     echo json_encode(['affirmation' => $affirmation]);
 } catch (RuntimeException $e) {

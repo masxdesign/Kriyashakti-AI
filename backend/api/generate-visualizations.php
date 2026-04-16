@@ -52,6 +52,7 @@ $option = trim($body['option'] ?? '');
 if (!$option) {
     jsonError('option must be a non-empty string.');
 }
+$mode = in_array($body['mode'] ?? '', ['kriyashakti', 'generic']) ? $body['mode'] : 'generic';
 
 $apiKey = getenv('OPENROUTER_API_KEY');
 if (!$apiKey) {
@@ -61,7 +62,7 @@ if (!$apiKey) {
 try {
     $client = new OpenRouterClient($apiKey);
     $visualizationGen = new VisualizationGenerator($client);
-    $visualization = $visualizationGen->generateOne($option);
+    $visualization = $visualizationGen->generateOne($option, $mode);
 
     echo json_encode(['visualization' => $visualization]);
 } catch (RuntimeException $e) {

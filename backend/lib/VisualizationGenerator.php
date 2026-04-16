@@ -18,7 +18,7 @@ class VisualizationGenerator
      * @return string The visualization string
      * @throws RuntimeException on parse error
      */
-    public function generateOne(string $option): string
+    public function generateOne(string $option, string $mode = 'generic'): string
     {
         $system = <<<'PROMPT'
 You are a Kriya Shakti Visualization Instruction Agent. Your sole function is to take a single Kriya Shakti script and generate a rich, immersive mental visualization instruction for it.
