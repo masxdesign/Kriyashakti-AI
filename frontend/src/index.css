@@ -110,6 +110,359 @@ body::before {
   margin-inline: auto;
 }
 
+/* ══════════════════════════════════════════
+   HOME SCREEN
+   Vibe: Editorial Luxury — warm parchment, prismatic hairline
+   Layout: centered vertical, card-as-hero
+   ══════════════════════════════════════════ */
+
+/* ── Page shell ── */
+.home-shell {
+  box-sizing: border-box;
+  flex: 1 0 auto;
+  width: 100%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.25rem 5.5rem;
+  gap: 2rem;
+  /* Ambient top glow matching the prismatic accent */
+  background:
+    radial-gradient(ellipse 80% 35% at 50% 0%, color-mix(in oklab, var(--primary) 7%, transparent), transparent 65%),
+    var(--background);
+}
+
+@media (min-width: 768px) {
+  .home-shell {
+    padding: 5rem 2rem 7rem;
+    gap: 2.25rem;
+  }
+}
+
+/* ── Hero title block ── */
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  text-align: center;
+  max-width: 28rem;
+
+  /* Entry: fade up from blur */
+  opacity: 0;
+  transform: translateY(1.25rem);
+  filter: blur(4px);
+  transition:
+    opacity 0.7s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.7s cubic-bezier(0.32, 0.72, 0, 1),
+    filter 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform, opacity;
+}
+
+.home-hero[data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* Eyebrow — small-caps label, matches internal page */
+.home-eyebrow {
+  display: inline-block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+  margin: 0;
+}
+
+/* Title */
+.home-title {
+  margin: 0;
+  font-size: clamp(1.875rem, 5vw, 2.625rem);
+  font-weight: 780;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  color: var(--foreground);
+  text-wrap: balance;
+}
+
+/* Lead */
+.home-lead {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+  max-width: 36ch;
+  text-wrap: pretty;
+}
+
+/* ── Form wrap ── */
+.home-form-wrap {
+  width: 100%;
+  max-width: 26rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  opacity: 0;
+  transform: translateY(1rem);
+  transition:
+    opacity 0.65s cubic-bezier(0.32, 0.72, 0, 1) 0.12s,
+    transform 0.65s cubic-bezier(0.32, 0.72, 0, 1) 0.12s;
+  will-change: transform, opacity;
+}
+
+.home-form-wrap[data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Network error below form */
+.home-error {
+  font-size: 0.8125rem;
+  color: #b91c1c;
+  text-align: center;
+  margin: 0.75rem 0 0;
+}
+
+/* ── Form ── */
+.home-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  width: 100%;
+}
+
+/* ══════════════════════════════════════════
+   TEXTAREA CARD — full rainbow border via gradient-padding shell
+   ══════════════════════════════════════════ */
+
+/* Outer shell — gradient padding IS the border, matching SuggestionSlider exactly */
+.home-card {
+  border-radius: 1rem;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    #a78bfa 0%,
+    #c4b5fd 12%,
+    #fbcfe8 26%,
+    #fda4af 36%,
+    #fdba74 44%,
+    #fca5a5 51%,
+    #86efac 62%,
+    #7dd3fc 74%,
+    #818cf8 84%,
+    #a78bfa 100%
+  );
+  box-shadow: 0 1px 4px -1px color-mix(in oklab, var(--foreground) 5%, transparent);
+  transition: box-shadow 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.home-card--focused {
+  box-shadow: 0 3px 16px -4px color-mix(in oklab, var(--primary) 12%, transparent);
+}
+
+.home-card--error {
+  background: #fca5a5;
+}
+
+/* Inner core — white surface, matches the rounded-[15px] inner from SuggestionSlider */
+.home-card-inner {
+  border-radius: calc(1rem - 1px);
+  background: white;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Textarea inside card */
+.home-textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1.125rem 1.25rem 0.75rem;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-sans-stack);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--foreground);
+  min-height: 8rem;
+}
+
+.home-textarea::placeholder {
+  color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+  font-style: italic;
+}
+
+.home-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Card footer: error (left) + CTA pill (right) ── */
+.home-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem 0.75rem;
+  border-top: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+}
+
+/* Inline field error */
+.home-field-error {
+  margin: 0;
+  flex: 1;
+  font-size: 0.8rem;
+  color: #b91c1c;
+  line-height: 1.3;
+}
+
+/* ── Submit button — pill with nested icon circle ── */
+.home-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  padding: 0.5rem 0.625rem 0.5rem 1rem;
+  background: var(--primary);
+  color: white;
+  font-family: var(--font-sans-stack);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.2s cubic-bezier(0.32, 0.72, 0, 1),
+    box-shadow 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow:
+    0 1px 8px -2px color-mix(in oklab, var(--primary) 38%, transparent),
+    inset 0 1px 0 rgba(255,255,255,0.14);
+  white-space: nowrap;
+}
+
+.home-submit-btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+  box-shadow:
+    0 3px 14px -2px color-mix(in oklab, var(--primary) 44%, transparent),
+    inset 0 1px 0 rgba(255,255,255,0.14);
+}
+
+.home-submit-btn:active { transform: scale(0.967); }
+
+.home-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.home-submit-btn:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--primary) 50%, transparent);
+  outline-offset: 2px;
+}
+
+/* Nested icon circle — button-in-button */
+.home-submit-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.17);
+  flex-shrink: 0;
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.home-submit-btn:hover:not(:disabled) .home-submit-icon {
+  transform: translate(1px, -1px);
+}
+
+/* ══════════════════════════════════════════
+   EXAMPLE CHIPS — compact wrapping cloud
+   ══════════════════════════════════════════ */
+
+.home-chips-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.home-chips-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--muted-foreground) 60%, transparent);
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-top: 0.1em;
+}
+
+.home-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.home-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.375rem 0.75rem;
+  background: color-mix(in oklab, white 80%, var(--background));
+  border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
+  font-family: var(--font-sans-stack);
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: color-mix(in oklab, var(--foreground) 70%, transparent);
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.35;
+  transition:
+    background 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+    border-color 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+    color 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+
+  opacity: 0;
+  animation: chip-enter 0.45s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.home-chip:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--primary) 5%, white);
+  border-color: color-mix(in oklab, var(--primary) 22%, transparent);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.home-chip:active { transform: scale(0.97); }
+
+.home-chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.home-chip:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--primary) 40%, transparent);
+  outline-offset: 2px;
+}
+
+@keyframes chip-enter {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Swipe hint — shimmer on “Swipe left” only; respects reduced motion */
 @keyframes swipe-hint-shimmer {
   0% {
@@ -149,93 +502,192 @@ body::before {
   }
 }
 
-/* ── Loading screen ── */
+/* ══════════════════════════════════════════
+   LOADING SCREEN — High-end redesign
+   Archetype: Soft Structuralism × Editorial Luxury
+   Full-screen centered composition, Double-Bezel chakra vessel
+   ══════════════════════════════════════════ */
 
-.kriya-loader {
+/* Full-screen shell */
+.loader-shell {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 41;
   overflow: hidden;
-  background: linear-gradient(
-    165deg,
-    color-mix(in oklab, var(--primary-muted) 85%, white) 0%,
-    #faf7f4 55%,
-    #f5f2ed 100%
-  );
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 56px;
   font-family: var(--font-sans-stack);
-}
-
-.kriya-loader__bg {
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(ellipse 55% 45% at 15% 25%, color-mix(in oklab, var(--primary) 12%, transparent) 0%, transparent 70%),
-    radial-gradient(ellipse 45% 55% at 85% 75%, color-mix(in oklab, var(--primary) 9%, transparent) 0%, transparent 65%);
-  pointer-events: none;
-}
-
-.kriya-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(70px);
-  pointer-events: none;
-}
-
-.kriya-blob--1 {
-  width: 400px;
-  height: 400px;
-  background: color-mix(in oklab, var(--primary) 14%, transparent);
-  top: -80px;
-  left: -100px;
-  animation: blob-drift-1 16s ease-in-out infinite;
-}
-
-.kriya-blob--2 {
-  width: 320px;
-  height: 320px;
-  background: color-mix(in oklab, var(--primary) 10%, transparent);
-  bottom: -60px;
-  right: -80px;
-  animation: blob-drift-2 19s ease-in-out infinite;
-}
-
-/* ── Chakra column ── */
-
-.chakra-column {
-  position: relative;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%, color-mix(in oklab, var(--primary) 10%, transparent), transparent 65%),
+    radial-gradient(ellipse 60% 50% at 10% 100%, color-mix(in oklab, var(--primary) 6%, transparent), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(6,182,212,0.06), transparent 55%),
+    var(--background);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  z-index: 2;
-  padding: 8px 0;
+  justify-content: center;
+
+  /* Entrance fade-in */
+  animation: loader-enter 0.7s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
-.chakra-channel {
+@keyframes loader-enter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Ambient orbs — fixed, GPU-safe */
+.loader-orb {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 3px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+  will-change: transform;
+}
+
+.loader-orb--1 {
+  width: 420px;
+  height: 420px;
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  top: -120px;
+  left: -80px;
+  animation: orb-drift-a 20s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.loader-orb--2 {
+  width: 340px;
+  height: 340px;
+  background: rgba(6, 182, 212, 0.08);
+  bottom: -80px;
+  right: -60px;
+  animation: orb-drift-b 25s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.loader-orb--3 {
+  width: 260px;
+  height: 260px;
+  background: rgba(234, 179, 8, 0.06);
+  bottom: 20%;
+  left: 5%;
+  animation: orb-drift-a 18s cubic-bezier(0.45, 0, 0.55, 1) infinite reverse;
+}
+
+@keyframes orb-drift-a {
+  0%, 100% { transform: translate(0, 0); }
+  33%       { transform: translate(28px, 18px); }
+  66%       { transform: translate(-12px, 32px); }
+}
+
+@keyframes orb-drift-b {
+  0%, 100% { transform: translate(0, 0); }
+  40%       { transform: translate(-30px, -20px); }
+  70%       { transform: translate(14px, -36px); }
+}
+
+/* ── Central composition ── */
+.loader-stage {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+  padding: 1rem;
+
+  animation: stage-rise 0.9s cubic-bezier(0.32, 0.72, 0, 1) 0.1s both;
+}
+
+@keyframes stage-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* ── Double-Bezel chakra vessel — the outer machined tray ── */
+.loader-vessel-shell {
+  border-radius: 2.5rem;
+  padding: 0.5rem;
+  background: color-mix(in oklab, var(--primary) 4%, white);
+  border: 1px solid color-mix(in oklab, var(--primary) 12%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--primary) 6%, transparent),
+    0 8px 32px -8px color-mix(in oklab, var(--primary) 16%, transparent),
+    0 2px 8px -2px color-mix(in oklab, var(--foreground) 5%, transparent);
+  animation: vessel-breathe 4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes vessel-breathe {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--primary) 6%, transparent),
+      0 8px 32px -8px color-mix(in oklab, var(--primary) 16%, transparent),
+      0 2px 8px -2px color-mix(in oklab, var(--foreground) 5%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--primary) 12%, transparent),
+      0 12px 48px -8px color-mix(in oklab, var(--primary) 24%, transparent),
+      0 2px 8px -2px color-mix(in oklab, var(--foreground) 5%, transparent);
+  }
+}
+
+/* Inner core — the glass plate */
+.loader-vessel-inner {
+  border-radius: calc(2.5rem - 0.5rem);
+  background: color-mix(in oklab, white 94%, var(--background));
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.95);
+  padding: 1.5rem 2rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Sushumna channel (nadi central line) ── */
+.loader-channel {
+  position: absolute;
+  top: 1.5rem;
+  bottom: 1.5rem;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
   background: linear-gradient(
     to bottom,
-    color-mix(in oklab, var(--primary) 70%, #c4b5a3),
-    oklch(0.55 0.08 260),
-    oklch(0.58 0.1 200),
-    oklch(0.58 0.12 145),
-    oklch(0.62 0.12 95),
-    oklch(0.58 0.12 55),
-    oklch(0.55 0.14 25)
+    #a855f7,
+    #6366f1,
+    #06b6d4,
+    #22c55e,
+    #eab308,
+    #f97316,
+    #ef4444
   );
-  border-radius: 3px;
-  filter: blur(1px);
-  animation: channel-pulse 2.8s ease-in-out infinite;
+  border-radius: 2px;
+  filter: blur(0.5px);
+  opacity: 0.5;
+  animation: channel-breathe 3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
+@keyframes channel-breathe {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.75; }
+}
+
+/* ── Chakra column ── */
+.loader-chakra-col {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* Re-use existing chakra node + svg + aura classes */
 .chakra-node {
   position: relative;
   display: flex;
@@ -255,152 +707,156 @@ body::before {
 .chakra-svg--outer {
   animation: spin-cw var(--spin-dur) linear infinite;
   animation-delay: calc(var(--delay) * -1);
+  will-change: transform;
 }
 
 .chakra-svg--inner {
   animation: spin-ccw calc(var(--spin-dur) * 0.65) linear infinite;
   animation-delay: calc(var(--delay) * -0.5);
+  will-change: transform;
+}
+
+.chakra-svg--static {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
 .chakra-aura {
   position: absolute;
-  inset: -4px;
+  inset: -6px;
   border-radius: 50%;
   background: radial-gradient(circle, var(--chakra-glow) 0%, transparent 70%);
-  animation: aura-pulse calc(2.4s + var(--delay) * 0.3) ease-in-out infinite;
-  animation-delay: var(--delay);
+  animation: aura-pulse calc(2.4s + var(--delay, 0s) * 0.3) cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation-delay: var(--delay, 0s);
   pointer-events: none;
 }
 
-.kriya-loader__copy {
-  position: relative;
-  z-index: 2;
-  text-align: left;
-  max-width: min(90vw, 340px);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.kriya-loader__title {
-  margin: 0;
-  font-size: clamp(20px, 3vw, 28px);
-  font-weight: 700;
-  letter-spacing: -0.035em;
-  color: #1c1917;
-  line-height: 1.1;
-}
-
-.kriya-loader__tagline {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.65;
-  color: #57534e;
-}
-
-.kriya-loader__status {
-  margin: 4px 0 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--primary);
-  min-height: 20px;
-  transition: opacity 0.3s ease;
-}
-
-.kriya-dots {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.kriya-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: color-mix(in oklab, var(--primary) 22%, #e7e5e4);
-  transition: background 0.3s ease, transform 0.3s ease;
-}
-
-.kriya-dot--active {
-  background: var(--primary);
-  transform: scale(1.35);
-}
-
 @keyframes spin-cw {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes spin-ccw {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(-360deg);
-  }
+  to { transform: rotate(-360deg); }
 }
 
 @keyframes aura-pulse {
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scale(0.95);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
+  0%, 100% { opacity: 0.35; transform: scale(0.93); }
+  50%       { opacity: 0.75; transform: scale(1.07); }
 }
 
-@keyframes channel-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
+/* ── Copy block ── */
+.loader-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.625rem;
+  max-width: min(90vw, 22rem);
 }
 
-@keyframes blob-drift-1 {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(30px, 20px);
-  }
+/* Eyebrow */
+.loader-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.28rem 0.8rem;
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--primary) 16%, transparent);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--primary);
+  line-height: 1;
 }
 
-@keyframes blob-drift-2 {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(-25px, -30px);
-  }
+/* Title */
+.loader-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: var(--foreground);
+  white-space: pre-line;
 }
 
+/* Cycling status message */
+.loader-status {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--primary);
+  min-height: 1.25rem;
+  will-change: transform, opacity;
+}
+
+/* ── Progress runway — Double-Bezel pill track ── */
+.loader-track-shell {
+  width: 10rem;
+  border-radius: 9999px;
+  padding: 3px;
+  background: color-mix(in oklab, var(--primary) 6%, transparent);
+  border: 1px solid color-mix(in oklab, var(--primary) 12%, transparent);
+  margin-top: 0.25rem;
+}
+
+.loader-track-inner {
+  height: 4px;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+  overflow: hidden;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+.loader-track-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--primary), color-mix(in oklab, var(--primary) 70%, #06b6d4));
+  transform-origin: left center;
+  transition: transform 0.8s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+  box-shadow: 0 0 8px 1px color-mix(in oklab, var(--primary) 40%, transparent);
+}
+
+/* Step dots */
+.loader-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-top: 0.125rem;
+}
+
+.loader-dot {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--primary) calc(var(--dot-active, 0) * 100% + 18%), #e7e5e4);
+  transform: scale(calc(1 + var(--dot-active, 0) * 0.38));
+  transition:
+    transform 0.5s cubic-bezier(0.32, 0.72, 0, 1),
+    background 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ── Mobile collapse ── */
 @media (max-width: 640px) {
-  .kriya-loader {
-    flex-direction: column;
-    gap: 32px;
+  .loader-stage {
+    gap: 2rem;
   }
-  .kriya-loader__copy {
-    text-align: center;
-    align-items: center;
+
+  .loader-vessel-inner {
+    padding: 1.25rem 1.5rem;
   }
-  .chakra-node {
-    width: 52px;
-    height: 52px;
+
+  .loader-title {
+    font-size: 1.375rem;
   }
-  .chakra-column {
-    gap: 4px;
+
+  .loader-track-shell {
+    width: 8rem;
   }
 }

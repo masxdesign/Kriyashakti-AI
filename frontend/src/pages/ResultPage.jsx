@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useWishResult, clearWishResult, setWishResult } from '../store/wishResult.js'
+import { isKriya } from '@/lib/mode.js'
 import OriginalWishCard from '../components/OriginalWishCard.jsx'
 import CoreIntentionsChips from '../components/CoreIntentionsChips.jsx'
 import SuggestionSlider from '../components/SuggestionSlider.jsx'
@@ -64,12 +65,14 @@ export default function ResultPage() {
         <>
           <div className="w-full max-w-2xl flex flex-col gap-6">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-1">Your Kriyashakti</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 mb-1">{isKriya ? 'Your Kriyashakti' : 'Your statement'}</p>
               <h1 className="text-2xl font-bold tracking-tight text-stone-900 leading-snug text-balance">
                 Your wish has {coreWishes.length} core intentions
               </h1>
               <p className="mt-2 text-sm text-stone-500 leading-relaxed text-pretty">
-                Combined wording is harder to hold as a single image. Each intention gets its own Kriyashakti so the energy stays focused.
+                {isKriya
+                  ? 'Combined wording is harder to hold as a single image. Each intention gets its own Kriyashakti so the energy stays focused.'
+                  : 'Combined wording is harder to hold as a single image. Each intention gets its own statement so the focus stays clear.'}
               </p>
             </div>
             <OriginalWishCard wish={result.wish} variant="secondary" />

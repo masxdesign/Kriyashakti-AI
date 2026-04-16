@@ -5,6 +5,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { ensureSessionIdForEntry, getAllHistory, deleteFromHistory, getAllFavorites, deleteFavorite, getHistoryBySessionId } from '../store/historyDB.js'
 import { setWishResult } from '../store/wishResult.js'
+import { isKriya } from '@/lib/mode.js'
 
 function timeAgo(ts) {
   const diff = Date.now() - ts
@@ -169,7 +170,7 @@ function FavoritesTab({ onClose }) {
           key={row.id}
           role="button"
           tabIndex={0}
-          aria-label="Open this Kriyashakti in context"
+          aria-label={isKriya ? 'Open this Kriyashakti in context' : 'Open this statement in context'}
           onClick={() => handleOpen(row)}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen(row) } }}
           className="group rounded-xl border border-stone-100 bg-white px-4 py-3.5 cursor-pointer shadow-sm shadow-stone-900/4 transition-all duration-200 hover:border-primary/25 hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 list-none"

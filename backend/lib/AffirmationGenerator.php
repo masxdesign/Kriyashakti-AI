@@ -18,7 +18,7 @@ class AffirmationGenerator
      * @return string The affirmation text (newline-separated lines)
      * @throws RuntimeException on parse error
      */
-    public function generate(string $option, ?string $visualization = null): string
+    public function generate(string $option, ?string $visualization = null, string $mode = 'generic'): string
     {
         $system = <<<'PROMPT'
 You write short affirmations in a Rev. Ike style: bold, grateful, abundant.

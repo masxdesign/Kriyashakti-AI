@@ -3,6 +3,7 @@ import { motion, useMotionValue, useTransform, useMotionValueEvent, animate } fr
 import { useDrag } from '@use-gesture/react'
 import { generateVisualization, generateAffirmation } from '../api/processWish.js'
 import { cn } from '@/lib/utils'
+import { isKriya } from '@/lib/mode.js'
 import { makeFavoriteDedupeKey, isFavoriteDedupeKey, toggleFavorite, onFavoritesChange } from '../store/historyDB.js'
 import {
   Drawer,
@@ -581,8 +582,8 @@ export default function SuggestionSlider({
         onOpenChange={open => !open && setDialogOpen(null)}
         title={dialogOpen === 'viz' ? 'Visualization' : 'Affirmation'}
         description={dialogOpen === 'viz'
-          ? 'Mental picture for your practice, with your Kriyashakti line as context.'
-          : 'Affirmation lines for your practice, with your Kriyashakti line as context.'}
+          ? `Mental picture for your practice, with your ${isKriya ? 'Kriyashakti' : 'statement'} as context.`
+          : `Affirmation lines for your practice, with your ${isKriya ? 'Kriyashakti' : 'statement'} as context.`}
       >
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="flex flex-col gap-8 px-6 pb-8 pt-6">
@@ -606,7 +607,7 @@ export default function SuggestionSlider({
               <div className="flex gap-3.5">
                 <div className="mt-0.5 w-1 shrink-0 self-stretch min-h-11 rounded-full bg-primary/25" aria-hidden />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/70">Kriyashakti</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/70">{isKriya ? 'Kriyashakti' : 'Statement'}</p>
                   <p className="mt-2 text-sm font-medium leading-relaxed text-stone-500">{options[index]}</p>
                 </div>
               </div>
@@ -619,12 +620,14 @@ export default function SuggestionSlider({
         open={howToUseOpen}
         onOpenChange={setHowToUseOpen}
         title="How to use this"
-        description="Instructions for using Kriyashakti statements."
+        description={isKriya ? 'Instructions for using Kriyashakti statements.' : 'Instructions for using your statements.'}
       >
         <div className="flex flex-col gap-4 px-6 pb-8 pt-6 text-sm text-stone-600 leading-relaxed text-pretty">
           <p>
-            We give you five versions of a Kriyashakti — a short phrase you say or write as if your wish is already true.
-            Use the arrows to browse, then pick what feels natural. Add a visualization and affirmation when you are ready.
+            {isKriya
+              ? 'We give you five versions of a Kriyashakti — a short phrase you say or write as if your wish is already true.'
+              : 'We give you five present-tense statements — a short phrase you say or write as if your wish is already true.'}
+            {' '}Use the arrows to browse, then pick what feels natural. Add a visualization and affirmation when you are ready.
           </p>
           {rootWish && (
             <p>Your original wish: <span className="italic text-stone-400">&ldquo;{rootWish}&rdquo;</span></p>
